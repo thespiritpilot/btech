@@ -15,6 +15,7 @@
       --accent: #58a6ff;
       --accent-hover: #79b8ff;
       --success: #3fb950;
+      --danger: #f87171;
       --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
     }
@@ -87,6 +88,16 @@
       color: var(--text-bright);
     }
 
+    .tag-success {
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .tag-danger {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
     .btn {
       font-family: var(--font-sans);
       font-size: 12px;
@@ -106,6 +117,11 @@
     .btn:hover {
       border-color: var(--text-muted);
       color: #fff;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     .btn-primary {
@@ -138,6 +154,14 @@
       font-family: var(--font-mono);
     }
 
+    .muted {
+      color: var(--text-muted);
+    }
+
+    .small {
+      font-size: 12px;
+    }
+
     /* Contract banner */
     .contract-banner {
       border: 1px solid var(--border);
@@ -153,8 +177,8 @@
       font-size: 12px;
     }
 
-    /* Agent Workspace Panel */
-    .agent-panel {
+    /* Simulation Panel */
+    .sim-panel {
       border: 1px solid var(--accent);
       background: var(--surface);
       border-radius: 6px;
@@ -162,81 +186,73 @@
       margin-bottom: 24px;
     }
 
-    .agent-nav {
+    .sim-controls {
       display: flex;
       gap: 8px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 12px;
-      margin-bottom: 16px;
       flex-wrap: wrap;
+      margin-bottom: 16px;
     }
 
-    .agent-tab-btn {
-      font-size: 12px;
-      padding: 5px 12px;
-      border-radius: 4px;
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      cursor: pointer;
-    }
-
-    .agent-tab-btn.active {
-      background: #1f6feb;
-      border-color: #388bfd;
-      color: #ffffff;
-      font-weight: 600;
-    }
-
-    .form-group {
-      margin-bottom: 12px;
-    }
-
-    .form-label {
-      display: block;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--text-muted);
-      margin-bottom: 4px;
-    }
-
-    .form-input, .form-select, .form-textarea {
-      width: 100%;
-      background: #0d1117;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 7px 10px;
-      color: var(--text-bright);
-      font-family: var(--font-sans);
-      font-size: 13px;
-    }
-
-    .form-input:focus, .form-select:focus, .form-textarea:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    @media (max-width: 600px) {
-      .form-row {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .alert-box {
+    .sim-step {
       border: 1px solid var(--border);
       background: #0d1117;
       border-radius: 6px;
       padding: 10px 12px;
-      margin-top: 12px;
+      margin-bottom: 10px;
       font-size: 12px;
-      display: none;
+      animation: simStepIn 0.25s ease-out;
+    }
+
+    @keyframes simStepIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .sim-step-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .sim-step-actor {
+      color: var(--text-bright);
+      font-weight: 600;
+    }
+
+    .sim-step-detail {
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .sim-payload {
+      background: #161b22;
+      border: 1px solid var(--border);
+      padding: 8px;
+      border-radius: 4px;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-bright);
+    }
+
+    .sim-hash {
+      color: var(--text-muted);
+      margin-top: 6px;
+      font-size: 11px;
+    }
+
+    .sim-summary {
+      border: 1px solid var(--success);
+      background: #0d1117;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--text-bright);
+    }
+
+    .sim-summary.dispute {
+      border-color: var(--danger);
     }
 
     /* Metrics Grid */
@@ -361,6 +377,15 @@
       color: var(--text-muted);
     }
 
+    .listing-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+
     /* Table */
     .table-box {
       border: 1px solid var(--border);
@@ -396,16 +421,6 @@
 
     tr:last-child td {
       border-bottom: none;
-    }
-
-    /* Activity cards */
-    .activity-card {
-      border: 1px solid var(--border);
-      background: #0d1117;
-      border-radius: 6px;
-      padding: 10px 12px;
-      margin-bottom: 10px;
-      font-size: 12px;
     }
 
     /* Mechanism specifications */
@@ -453,114 +468,37 @@
         <div class="brand-subtitle">Autonomous agent marketplace for unverifiable sports scouting intelligence</div>
       </div>
       <div class="header-actions">
-        <button id="btnToggleAgent" class="btn btn-primary" onclick="toggleAgentPanel()">⚡ Act as an Agent</button>
+        <button id="btnToggleSim" class="btn btn-primary" onclick="toggleSimPanel()">▶ Run Simulation</button>
         <span class="tag">Sepolia Testnet</span>
-        <button id="btnConnect" class="btn" onclick="connectWallet()">Connect Wallet</button>
       </div>
     </header>
 
     <!-- Contract Address Banner -->
     <div class="contract-banner">
       <div>
-        <span style="color: var(--text-muted);">Contract:</span>
+        <span class="muted">Contract:</span>
         <a id="contractLink" href="https://sepolia.etherscan.io/address/0x2806E4C4c76c25C59b5530E481A2B5cDAA329C32#code" target="_blank" class="mono" style="margin-left: 4px;">
           0x2806E4C4c76c25C59b5530E481A2B5cDAA329C32 ↗
         </a>
       </div>
-      <div style="color: var(--text-muted);">
+      <div class="muted">
         Status: <span id="rpcStatus" class="mono" style="color: var(--text-bright);">RPC Synced</span>
       </div>
     </div>
 
-    <!-- Interactive Agent Workspace -->
-    <div id="agentPanel" class="agent-panel" style="display: none;">
-      <div class="agent-nav">
-        <button id="tabBtnSell" class="agent-tab-btn active" onclick="switchAgentTab('sell')">Sell Intelligence</button>
-        <button id="tabBtnBuy" class="agent-tab-btn" onclick="switchAgentTab('buy')">Browse & Buy</button>
-        <button id="tabBtnActivity" class="agent-tab-btn" onclick="switchAgentTab('activity')">My Activity / Settle</button>
+    <!-- Simulation Panel -->
+    <div id="simPanel" class="sim-panel" style="display: none;">
+      <div class="small muted" style="margin-bottom: 14px;">
+        A local walkthrough of the contract's flow — no wallet, no gas, nothing sent on-chain.
       </div>
 
-      <!-- Tab: Sell Intelligence -->
-      <div id="view-sell">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
-          Package non-public scouting intelligence, compute cryptographic hash commitment client-side, and publish on-chain.
-        </div>
-        
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Category Bucket</label>
-            <select id="sell-category" class="form-select">
-              <option value="Young Star">Young Star (Prospect / Talent)</option>
-              <option value="Health Flag">Health Flag (Medical / Injury Risk)</option>
-              <option value="Career Change">Career Change (Transfer / Contract)</option>
-              <option value="Performance Edge">Performance Edge (Tactical / Film)</option>
-              <option value="Character Note">Character Note (Locker Room / Fit)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Subject Entity (PlayerName — Team)</label>
-            <input id="sell-title" class="form-input" placeholder="e.g. Devin Brooks — Alabama" />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Confidential Intelligence Payload (Plaintext)</label>
-          <textarea id="sell-intel" class="form-textarea" rows="3" placeholder="Enter confidential scouting notes... (Never exposed publicly until purchase reveal)"></textarea>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Price (ETH)</label>
-            <input id="sell-price" class="form-input mono" type="number" step="0.001" value="0.002" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Verification Nature</label>
-            <select id="sell-type" class="form-select">
-              <option value="0">Falsifiable (Time-bound real-world outcome)</option>
-              <option value="1">Subjective (Qualitative assessment)</option>
-            </select>
-          </div>
-        </div>
-
-        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">
-          * Plaintext is saved to browser localStorage to generate the commitment hash and enable on-chain reveal once purchased.
-        </div>
-
-        <div class="d-flex align-items-center gap-2">
-          <button id="btnPublishListing" class="btn btn-primary" onclick="publishListing()">Publish Listing to Sepolia</button>
-          <button id="btnDepositStake" class="btn" style="display: none;" onclick="depositSellerStake()">Deposit 0.01 ETH Stake</button>
-        </div>
-
-        <div id="sellAlert" class="alert-box"></div>
+      <div class="sim-controls">
+        <button id="btnRunHappy" class="btn btn-primary" onclick="runSimulation('happy')">▶ Run Happy-Path Simulation</button>
+        <button id="btnRunDispute" class="btn" onclick="runSimulation('dispute')">⚠ Run Dispute &amp; Slash Simulation</button>
+        <button id="btnResetSim" class="btn" onclick="resetSimulation()" style="display: none;">↺ Reset</button>
       </div>
 
-      <!-- Tab: Browse & Buy -->
-      <div id="view-buy" style="display: none;">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
-          Browse available scouting intel below. Clicking <strong>Buy</strong> locks payment in the smart contract escrow until the seller submits on-chain proof-of-reveal.
-        </div>
-      </div>
-
-      <!-- Tab: My Activity / Settle -->
-      <div id="view-activity" style="display: none;">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
-          Manage your pending on-chain reveals as a seller or confirm received intel as a buyer.
-        </div>
-
-        <div id="sellerRevealSection" style="margin-bottom: 16px;">
-          <div class="form-label" style="margin-bottom: 8px;">Pending Reveals (Seller Action Required)</div>
-          <div id="sellerRevealList">
-            <div style="color: var(--text-muted); font-size: 12px;">No pending reveals for connected account.</div>
-          </div>
-        </div>
-
-        <div id="buyerPurchasesSection">
-          <div class="form-label" style="margin-bottom: 8px;">My Purchases & Escrow Confirmations</div>
-          <div id="buyerPurchasesList">
-            <div style="color: var(--text-muted); font-size: 12px;">Connect wallet to inspect purchased intelligence reports.</div>
-          </div>
-        </div>
-      </div>
+      <div id="simTimeline"></div>
     </div>
 
     <!-- Metrics Bar -->
@@ -639,6 +577,7 @@
             <li><strong>Dispute Deterrent:</strong> Buyer must post a 0.001 ETH dispute bond, forfeited to the seller if the claim is baseless.</li>
             <li><strong>Stake Slashing:</strong> Losing arbitration slashes 0.005 ETH from the seller stake to compensate the buyer.</li>
             <li><strong>Reputation Engine:</strong> Composite 0–10,000 bps score tracking dispute outcomes and falsifiable claim accuracy.</li>
+            <li><strong>Run Simulation:</strong> Walks the exact contract call sequence locally so anyone can see the mechanism work without a funded wallet.</li>
           </ul>
         </div>
       </div>
@@ -650,279 +589,183 @@
     const CONTRACT_ADDRESS = "0x2806E4C4c76c25C59b5530E481A2B5cDAA329C32";
     const RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com";
 
+    // Read-only ABI — this page only ever displays on-chain state, it never
+    // submits transactions. See "Run Simulation" for an interactive walkthrough
+    // of the write-path functions (createListing, buyIntel, revealIntel, etc.)
     const ABI = [
       "function listingCounter() external view returns (uint256)",
       "function purchaseCounter() external view returns (uint256)",
       "function listings(uint256) external view returns (uint256 listingId, address seller, bytes32 contentCommitment, string teaser, uint256 price, uint256 expiryTimestamp, uint8 category, uint256 claimResolutionTimestamp, bool active, uint256 createdAt)",
       "function purchases(uint256) external view returns (uint256 purchaseId, uint256 listingId, address buyer, uint256 amountPaid, uint256 revealDeadline, uint8 status, string revealedContent, uint256 disputedAt, string disputeReason)",
-      "function getSellerReputation(address seller) external view returns (uint256 stake, uint256 completedSales, uint256 disputesWon, uint256 disputesLost, uint256 resolvedClaims, uint256 accurateClaims, uint256 totalEarnings, uint256 compositeScoreBps)",
-      "function depositStake() external payable",
-      "function createListing(bytes32 contentCommitment, string calldata teaser, uint256 price, uint256 expiryTimestamp, uint8 category, uint256 claimResolutionTimestamp) external returns (uint256)",
-      "function buyIntel(uint256 listingId) external payable returns (uint256)",
-      "function revealIntel(uint256 purchaseId, string calldata plaintextIntel) external",
-      "function confirmReceipt(uint256 purchaseId) external"
+      "function getSellerReputation(address seller) external view returns (uint256 stake, uint256 completedSales, uint256 disputesWon, uint256 disputesLost, uint256 resolvedClaims, uint256 accurateClaims, uint256 totalEarnings, uint256 compositeScoreBps)"
     ];
 
     const statusLabels = ["PendingReveal", "Revealed", "Confirmed", "Refunded", "Disputed"];
-    let provider, contract, signer, userAddress;
+    let provider, contract;
 
     async function init() {
       try {
         provider = new ethers.JsonRpcProvider(RPC_URL);
         contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
         await loadContractData();
-
-        // Check if wallet is already connected
-        if (window.ethereum) {
-          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-          if (accounts.length > 0) {
-            await setupSigner();
-          }
-        }
       } catch (err) {
         console.error("RPC Error:", err);
         document.getElementById("rpcStatus").innerText = "RPC Fallback Required";
       }
     }
 
-    function toggleAgentPanel() {
-      const p = document.getElementById("agentPanel");
+    function toggleSimPanel() {
+      const p = document.getElementById("simPanel");
       p.style.display = p.style.display === "none" ? "block" : "none";
-      if (p.style.display === "block" && !signer) {
-        connectWallet();
-      }
     }
 
-    function switchAgentTab(tab) {
-      document.getElementById("view-sell").style.display = tab === "sell" ? "block" : "none";
-      document.getElementById("view-buy").style.display = tab === "buy" ? "block" : "none";
-      document.getElementById("view-activity").style.display = tab === "activity" ? "block" : "none";
+    // ===================================================================
+    // RUN SIMULATION — a fully local, scripted walkthrough of the sell /
+    // buy / reveal / confirm lifecycle, plus a dispute-and-slash branch.
+    // No wallet, no gas, nothing is broadcast; the commitment hashes shown
+    // are real keccak256 output (computed client-side via ethers) so the
+    // hash-match step is genuine, everything else is clearly labeled
+    // "SIMULATED" so it's never mistaken for a real transaction.
+    // ===================================================================
 
-      document.getElementById("tabBtnSell").className = "agent-tab-btn" + (tab === "sell" ? " active" : "");
-      document.getElementById("tabBtnBuy").className = "agent-tab-btn" + (tab === "buy" ? " active" : "");
-      document.getElementById("tabBtnActivity").className = "agent-tab-btn" + (tab === "activity" ? " active" : "");
+    const SIM_HAPPY_INTEL = {
+      teaser: "[Young Star] Devin Brooks — Alabama",
+      plaintext: "PROSPECT SCOUTING REPORT: Devin Brooks (Alabama CB) — Verified 4.34s 40-yd dash in private workout. Elite hip fluidity, projected Top-15 draft lock.",
+      priceEth: "0.002"
+    };
 
-      if (tab === "activity") {
-        renderUserActivity();
-      }
+    const SIM_DISPUTE_INTEL = {
+      teaser: "[Health Flag] Jaylen Cole — Oregon",
+      plaintext: "MEDICAL FLAG: Jaylen Cole (Oregon QB) — Subscapularis shoulder fatigue pattern observed on film; elevated soft-tissue re-injury risk within 8 weeks.",
+      priceEth: "0.0025",
+      disputeReason: "Team's official medical staff found no evidence of the claimed shoulder fatigue pattern — claim appears unsubstantiated."
+    };
+
+    let simRunning = false;
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    async function setupSigner() {
-      try {
-        const web3Provider = new ethers.BrowserProvider(window.ethereum);
-        signer = await web3Provider.getSigner();
-        userAddress = await signer.getAddress();
-        document.getElementById("btnConnect").innerText = `${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
-        contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-        await checkSellerStakeStatus();
-        renderUserActivity();
-      } catch (e) {
-        console.error(e);
-      }
+    function simFakeHash() {
+      const bytes = new Uint8Array(32);
+      crypto.getRandomValues(bytes);
+      return "0x" + Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("");
     }
 
-    async function connectWallet() {
-      if (window.ethereum) {
-        try {
-          await window.ethereum.request({ method: "eth_requestAccounts" });
-          await setupSigner();
-        } catch (e) {
-          alert("Wallet connection error: " + e.message);
-        }
+    async function addSimStep({ actor, badge, title, detail, extraHtml, showHash = true }) {
+      const timeline = document.getElementById("simTimeline");
+      const hash = showHash ? simFakeHash() : null;
+      const stepHtml = `
+        <div class="sim-step">
+          <div class="sim-step-top">
+            <span class="sim-step-actor">${actor}</span>
+            <span class="tag ${badge && badge.cls ? badge.cls : ''}">${badge ? badge.label : ''}</span>
+          </div>
+          <div>${title}</div>
+          ${detail ? `<div class="sim-step-detail">${detail}</div>` : ''}
+          ${extraHtml || ''}
+          ${hash ? `<div class="sim-hash mono">Simulated tx · ${hash.slice(0, 18)}...${hash.slice(-10)}</div>` : ''}
+        </div>
+      `;
+      timeline.insertAdjacentHTML("beforeend", stepHtml);
+      await sleep(650);
+    }
+
+    function setSimButtonsEnabled(enabled) {
+      document.getElementById("btnRunHappy").disabled = !enabled;
+      document.getElementById("btnRunDispute").disabled = !enabled;
+    }
+
+    function resetSimulation() {
+      document.getElementById("simTimeline").innerHTML = "";
+      document.getElementById("btnResetSim").style.display = "none";
+      setSimButtonsEnabled(true);
+    }
+
+    async function runSimulation(scenario) {
+      if (simRunning) return;
+      simRunning = true;
+      setSimButtonsEnabled(false);
+      document.getElementById("btnResetSim").style.display = "none";
+      document.getElementById("simTimeline").innerHTML = "";
+
+      const intel = scenario === "dispute" ? SIM_DISPUTE_INTEL : SIM_HAPPY_INTEL;
+      const commitmentHash = ethers.keccak256(ethers.toUtf8Bytes(intel.plaintext));
+
+      await addSimStep({
+        actor: "🧑‍💼 Seller Agent",
+        badge: { label: "depositStake()" },
+        title: "Stakes 0.01 ETH — required before they can list anything."
+      });
+
+      await addSimStep({
+        actor: "🧑‍💼 Seller Agent",
+        badge: { label: "createListing()" },
+        title: `Lists <strong>"${intel.teaser}"</strong> for ${intel.priceEth} ETH.`,
+        detail: "Only a hash of the intel goes on-chain — not the content itself.",
+        extraHtml: `<div class="sim-hash mono">Commitment: ${commitmentHash.slice(0, 18)}...${commitmentHash.slice(-10)}</div>`
+      });
+
+      await addSimStep({
+        actor: "🏈 Buyer Agent (GM / Scouting Dept.)",
+        badge: { label: "buyIntel()" },
+        title: `Pays ${intel.priceEth} ETH — held in escrow, not sent to the seller yet.`
+      });
+
+      await addSimStep({
+        actor: "🧑‍💼 Seller Agent",
+        badge: { label: "revealIntel()" },
+        title: "Reveals the real content on-chain.",
+        extraHtml: `
+          <div class="sim-payload">${intel.plaintext}</div>
+          <div class="small" style="color: var(--success); margin-top: 6px;">✅ Matches the hash from step 2.</div>
+        `
+      });
+
+      if (scenario === "dispute") {
+        await addSimStep({
+          actor: "🏈 Buyer Agent (GM / Scouting Dept.)",
+          badge: { label: "disputePurchase()", cls: "tag-danger" },
+          title: "Disputes it, posting a 0.001 ETH bond.",
+          detail: `Reason: "${intel.disputeReason}"`
+        });
+
+        await addSimStep({
+          actor: "⚖️ Arbitrator",
+          badge: { label: "resolveDispute()", cls: "tag-danger" },
+          title: "Rules for the buyer.",
+          detail: "Seller's stake is slashed 0.005 ETH; buyer gets that plus their escrow and bond back.",
+          showHash: true
+        });
+
+        document.getElementById("simTimeline").insertAdjacentHTML("beforeend", `
+          <div class="sim-summary dispute">
+            <strong>Dispute upheld.</strong> Buyer gets everything back plus a stake penalty. Seller's reputation takes a hit.
+          </div>
+        `);
       } else {
-        alert("MetaMask not found. Please install a Web3 wallet.");
-      }
-    }
+        await addSimStep({
+          actor: "🏈 Buyer Agent (GM / Scouting Dept.)",
+          badge: { label: "confirmReceipt()", cls: "tag-accent" },
+          title: "Confirms receipt — escrow is released to the seller."
+        });
 
-    async function checkSellerStakeStatus() {
-      if (!userAddress) return;
-      try {
-        const rep = await contract.getSellerReputation(userAddress);
-        const stakeEth = parseFloat(ethers.formatEther(rep.stake));
-        if (stakeEth < 0.01) {
-          document.getElementById("btnDepositStake").style.display = "inline-flex";
-          document.getElementById("btnDepositStake").innerText = `Deposit Stake (${(0.01 - stakeEth).toFixed(3)} ETH required)`;
-        } else {
-          document.getElementById("btnDepositStake").style.display = "none";
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    async function depositSellerStake() {
-      if (!signer) return connectWallet();
-      try {
-        const tx = await contract.depositStake({ value: ethers.parseEther("0.01") });
-        showSellAlert(`Depositing stake... Tx: <a href="https://sepolia.etherscan.io/tx/${tx.hash}" target="_blank" class="mono">${tx.hash.slice(0,10)}... ↗</a>`);
-        await tx.wait();
-        showSellAlert(`Stake deposit confirmed! You can now publish listings.`, true);
-        await checkSellerStakeStatus();
-      } catch (err) {
-        showSellAlert("Stake deposit failed: " + err.message);
-      }
-    }
-
-    async function publishListing() {
-      if (!signer) return connectWallet();
-
-      const category = document.getElementById("sell-category").value;
-      const title = document.getElementById("sell-title").value.trim();
-      const plaintext = document.getElementById("sell-intel").value.trim();
-      const priceEth = document.getElementById("sell-price").value.trim();
-      const claimCategory = parseInt(document.getElementById("sell-type").value);
-
-      if (!title || !plaintext || !priceEth) {
-        return showSellAlert("Please provide subject entity title, plaintext intel, and price.");
+        document.getElementById("simTimeline").insertAdjacentHTML("beforeend", `
+          <div class="sim-summary">
+            <strong>Sale complete.</strong> Seller gets paid, reputation improves, buyer got exactly what was promised.
+          </div>
+        `);
       }
 
-      try {
-        const teaser = `[${category}] ${title}`;
-        const commitmentHash = ethers.keccak256(ethers.toUtf8Bytes(plaintext));
-        const priceWei = ethers.parseEther(priceEth);
-        const now = Math.floor(Date.now() / 1000);
-        const expiry = now + 72 * 3600;
-        const resolution = now + 30 * 86400;
-
-        showSellAlert("Submitting createListing transaction to Sepolia...");
-        const tx = await contract.createListing(commitmentHash, teaser, priceWei, expiry, claimCategory, resolution);
-        showSellAlert(`Transaction pending... <a href="https://sepolia.etherscan.io/tx/${tx.hash}" target="_blank" class="mono">${tx.hash.slice(0,14)}... ↗</a>`);
-
-        const receipt = await tx.wait();
-
-        // Store plaintext in localStorage for future on-chain reveal
-        localStorage.setItem(`scout_intel_${commitmentHash}`, plaintext);
-
-        showSellAlert(`Listing confirmed on Sepolia! Commitment: <span class="mono">${commitmentHash.slice(0,14)}...</span> | <a href="https://sepolia.etherscan.io/tx/${tx.hash}" target="_blank">View Tx ↗</a>`, true);
-
-        // Reset form & reload feed
-        document.getElementById("sell-intel").value = "";
-        await loadContractData();
-      } catch (err) {
-        showSellAlert("Listing creation failed: " + (err.reason || err.message));
-      }
+      document.getElementById("btnResetSim").style.display = "inline-flex";
+      setSimButtonsEnabled(true);
+      simRunning = false;
     }
 
-    function showSellAlert(msg, isSuccess = false) {
-      const box = document.getElementById("sellAlert");
-      box.style.display = "block";
-      box.style.borderColor = isSuccess ? "var(--success)" : "var(--accent)";
-      box.innerHTML = msg;
-    }
-
-    async function executeBuy(listingId, priceWei) {
-      if (!signer) return connectWallet();
-      try {
-        const tx = await contract.buyIntel(listingId, { value: priceWei });
-        alert(`Escrow Purchase Submitted! Tx: https://sepolia.etherscan.io/tx/${tx.hash}\nFunds are locked in smart contract escrow.`);
-        await tx.wait();
-        alert(`Purchase confirmed! The seller has been notified to submit on-chain proof-of-reveal.`);
-        await loadContractData();
-        renderUserActivity();
-      } catch (err) {
-        alert("Purchase failed: " + (err.reason || err.message));
-      }
-    }
-
-    async function executeReveal(purchaseId, plaintext) {
-      if (!signer) return connectWallet();
-      try {
-        const tx = await contract.revealIntel(purchaseId, plaintext);
-        alert(`Reveal Submitted! Tx: https://sepolia.etherscan.io/tx/${tx.hash}`);
-        await tx.wait();
-        alert(`Proof of reveal verified and accepted on-chain!`);
-        await loadContractData();
-        renderUserActivity();
-      } catch (err) {
-        alert("Reveal failed: " + (err.reason || err.message));
-      }
-    }
-
-    async function executeConfirmReceipt(purchaseId) {
-      if (!signer) return connectWallet();
-      try {
-        const tx = await contract.confirmReceipt(purchaseId);
-        alert(`Confirming receipt & releasing escrow funds to seller... Tx: https://sepolia.etherscan.io/tx/${tx.hash}`);
-        await tx.wait();
-        alert(`Escrow released successfully! Seller reputation score updated.`);
-        await loadContractData();
-        renderUserActivity();
-      } catch (err) {
-        alert("Confirmation failed: " + (err.reason || err.message));
-      }
-    }
-
-    async function renderUserActivity() {
-      if (!userAddress || !contract) return;
-      try {
-        const purchaseCount = await contract.purchaseCounter();
-        const sellerRevealList = document.getElementById("sellerRevealList");
-        const buyerPurchasesList = document.getElementById("buyerPurchasesList");
-
-        let sellerPendingHtml = "";
-        let buyerPurchasesHtml = "";
-
-        for (let j = Number(purchaseCount); j >= 1; j--) {
-          const p = await contract.purchases(j);
-          const listing = await contract.listings(p.listingId);
-
-          // If current user is seller of this listing and purchase is PendingReveal
-          if (listing.seller.toLowerCase() === userAddress.toLowerCase()) {
-            if (Number(p.status) === 0) {
-              const storedIntel = localStorage.getItem(`scout_intel_${listing.contentCommitment}`);
-              sellerPendingHtml += `
-                <div class="activity-card">
-                  <div class="d-flex justify-content-between mb-1">
-                    <strong>Purchase #${p.purchaseId} on Listing #${p.listingId}</strong>
-                    <span class="tag">Pending Reveal</span>
-                  </div>
-                  <div class="text-muted small mb-2">${listing.teaser} (Escrow: ${ethers.formatEther(p.amountPaid)} ETH)</div>
-                  ${storedIntel ? 
-                    `<button class="btn btn-sm btn-primary" onclick="executeReveal(${p.purchaseId}, '${storedIntel.replace(/'/g, "\\'")}')">Submit Proof-of-Reveal On-Chain</button>` : 
-                    `<span class="mono small" style="color: #f87171;">Plaintext intel not found in this browser's localStorage.</span>`
-                  }
-                </div>
-              `;
-            }
-          }
-
-          // If current user is buyer of this purchase
-          if (p.buyer.toLowerCase() === userAddress.toLowerCase()) {
-            const statusIdx = Number(p.status);
-            let actionBtn = "";
-            let intelDisplay = "";
-
-            if (statusIdx === 0) {
-              actionBtn = `<span class="tag">Awaiting Seller Reveal</span>`;
-            } else if (statusIdx === 1) {
-              intelDisplay = `<div style="background: #161b22; border: 1px solid var(--border); padding: 8px; border-radius: 4px; margin: 6px 0; font-size: 12px; color: var(--text-bright);">${p.revealedContent}</div>`;
-              actionBtn = `<button class="btn btn-sm btn-primary" onclick="executeConfirmReceipt(${p.purchaseId})">Confirm Receipt & Release Escrow</button>`;
-            } else if (statusIdx === 2) {
-              actionBtn = `<span class="tag tag-accent">Confirmed & Settled</span>`;
-              intelDisplay = `<div style="color: var(--text-muted); font-size: 11px;">Intel: ${p.revealedContent}</div>`;
-            }
-
-            buyerPurchasesHtml += `
-              <div class="activity-card">
-                <div class="d-flex justify-content-between mb-1">
-                  <strong>Purchase #${p.purchaseId} — Listing #${p.listingId}</strong>
-                  <span class="mono">${ethers.formatEther(p.amountPaid)} ETH</span>
-                </div>
-                <div class="text-muted small">${listing.teaser}</div>
-                ${intelDisplay}
-                <div class="mt-2">${actionBtn}</div>
-              </div>
-            `;
-          }
-        }
-
-        sellerRevealList.innerHTML = sellerPendingHtml || '<div style="color: var(--text-muted); font-size: 12px;">No pending reveals for connected seller account.</div>';
-        buyerPurchasesList.innerHTML = buyerPurchasesHtml || '<div style="color: var(--text-muted); font-size: 12px;">No purchases recorded for connected buyer account.</div>';
-
-      } catch (e) {
-        console.error("Activity load error:", e);
-      }
-    }
+    // ===================================================================
+    // READ-ONLY LIVE DATA — pulled straight from Sepolia, display only.
+    // ===================================================================
 
     async function loadContractData() {
       try {
@@ -959,8 +802,8 @@
           const scoreBps = Number(rep.compositeScoreBps);
           const scorePct = (scoreBps / 100).toFixed(1);
 
-          const categoryTag = item.category === 0 ? 
-            '<span class="tag">Falsifiable Claim</span>' : 
+          const categoryTag = item.category === 0 ?
+            '<span class="tag">Falsifiable Claim</span>' :
             '<span class="tag">Subjective Analysis</span>';
 
           const teaserHtml = `<span class="tag mono" style="margin-right: 6px; color: var(--text-bright); border-color: #3b82f6;">${match[1]}</span><span>${match[2]}</span>`;
@@ -978,7 +821,7 @@
               <div class="listing-meta">
                 <div class="meta-row">
                   <span class="meta-key">Content Commitment:</span>
-                  <span class="mono" style="color: var(--text-muted);">${item.contentCommitment.slice(0, 16)}...${item.contentCommitment.slice(-8)}</span>
+                  <span class="mono muted">${item.contentCommitment.slice(0, 16)}...${item.contentCommitment.slice(-8)}</span>
                 </div>
                 <div class="meta-row">
                   <span class="meta-key">Seller:</span>
@@ -992,9 +835,9 @@
                   <span class="meta-key">Seller Reputation:</span>
                   <span class="mono">${scorePct}% (${scoreBps} bps)</span>
                 </div>
-                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary">
-                  <span class="mono small" style="color: var(--text-muted);">Escrow Protected</span>
-                  <button class="btn btn-sm btn-primary" onclick="executeBuy(${item.listingId}, ${item.price})">Buy for ${priceEth} ETH</button>
+                <div class="listing-footer">
+                  <span class="mono small muted">On-Chain · Escrow Protected</span>
+                  <a href="#" class="small" onclick="document.getElementById('simPanel').style.display='block'; runSimulation('happy'); this.blur(); return false;">▶ Try this flow in Run Simulation</a>
                 </div>
               </div>
             </div>
