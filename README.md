@@ -57,10 +57,33 @@ The core bet was: separate "did the seller deliver what they promised" (mechanic
 | 5 | **Receipt Confirmed** | [`0x2db7da...01846da`](https://sepolia.etherscan.io/tx/0x2db7da2bef8ae9623540ec10a1b3efb736aed498ca5cfd3546843eb1001846da) | 11679941 |
 | 6 | **Arbitrator Claim Resolution (Accurate)** | [`0x3b8fb0...35ffcd`](https://sepolia.etherscan.io/tx/0x3b8fb0274d65d3febc9c4e45b857936de73aa11d877ac113c571e487fa35ffcd) | 11679943 |
 
-### 4. Tightened Teaser Format Listing (Live on Sepolia)
+### 4. Interactive "Act as an Agent" Live Flow (Sepolia)
 | Step | Action | Tx Hash / Etherscan Link | Block |
 | :--- | :--- | :--- | :--- |
 | 1 | **Create Listing #5 (`[Health Flag] Jaylen Cole — Oregon`)** | [`0x28ad94...5a3381`](https://sepolia.etherscan.io/tx/0x28ad94be880657cb13bc2d9a2d93b5a279d22826e002b942f7cb37ef115a3381) | 11680199 |
+| 2 | **Sell: Create Listing #6 (`[Young Star] Devin Brooks — Alabama`)** | [`0x3765eb...65369c2`](https://sepolia.etherscan.io/tx/0x3765ebd013a701433e300d3dee07de69d7fbd20129a9408a993ae5ca765369c2) | 11680231 |
+| 3 | **Buy: Escrow Purchase #5** | [`0xc7cc25...8ce7107`](https://sepolia.etherscan.io/tx/0xc7cc25ebd0cde7ddd2bcdd0cf69673823c643a55bd7b9b141a58299248ce7107) | 11680232 |
+| 4 | **Reveal: Seller On-Chain Proof-of-Reveal** | [`0x018b83...561772`](https://sepolia.etherscan.io/tx/0x018b83998d93236936cfd03f0da7f9e143fed340f571a808b4943aef04561772) | 11680233 |
+| 5 | **Confirm: Buyer Verifies & Releases Escrow** | [`0x4d9c81...dcab8`](https://sepolia.etherscan.io/tx/0x4d9c8174e68aac238e4626de2184e82a877f155c9f681e83b1b35e1ef69dcab8) | 11680234 |
+
+---
+
+## Interactive "Act as an Agent" Web3 Flow
+
+Visitors can connect MetaMask and act directly as a **Seller Agent** or **Buyer Agent** on the live website:
+
+1. **Sell Flow**:
+   - The user selects a category taxonomy and writes confidential intelligence notes.
+   - The frontend computes `keccak256(plaintext)` locally and calls `createListing` via the connected wallet's signer.
+   - The plaintext is cached in browser `localStorage` keyed by commitment hash.
+2. **Buy Flow**:
+   - The user browses live listings and clicks **Buy for X ETH**, locking funds into smart contract escrow.
+3. **Reveal & Settlement (My Activity Tab)**:
+   - When a purchase occurs, the seller navigates to "My Activity" and clicks **Submit Proof-of-Reveal** (retrieving the cached plaintext to call `revealIntel`).
+   - The buyer inspects the decrypted intelligence on-chain and clicks **Confirm Receipt & Release Escrow**.
+
+### Client-Side Storage & Reveal Constraint (Known Design Limitation)
+Because ScoutMarket is a decentralized client-only static application without a custodial backend database, confidential intelligence plaintext is securely stored in the seller's browser `localStorage`. To perform the on-chain reveal, the seller must trigger `revealIntel` from the browser session that originally created the listing. In production autonomous agent deployments, agent processes maintain local encrypted keystores or off-chain state channels (via x402) to automate this reveal.
 
 ---
 

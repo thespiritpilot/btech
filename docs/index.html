@@ -13,6 +13,8 @@
       --text-bright: #f0f6fc;
       --text-muted: #8b949e;
       --accent: #58a6ff;
+      --accent-hover: #79b8ff;
+      --success: #3fb950;
       --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
     }
@@ -29,7 +31,7 @@
       font-family: var(--font-sans);
       font-size: 13px;
       line-height: 1.5;
-      padding: 32px 20px;
+      padding: 24px 16px;
     }
 
     .container {
@@ -65,7 +67,8 @@
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .tag {
@@ -79,6 +82,11 @@
       background: transparent;
     }
 
+    .tag-accent {
+      border-color: var(--accent);
+      color: var(--text-bright);
+    }
+
     .btn {
       font-family: var(--font-sans);
       font-size: 12px;
@@ -90,11 +98,31 @@
       color: var(--text-bright);
       cursor: pointer;
       text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .btn:hover {
       border-color: var(--text-muted);
       color: #fff;
+    }
+
+    .btn-primary {
+      background: #1f6feb;
+      border-color: #388bfd;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background: #388bfd;
+      color: #ffffff;
+    }
+
+    .btn-sm {
+      padding: 3px 8px;
+      font-size: 11px;
     }
 
     a {
@@ -123,6 +151,92 @@
       flex-wrap: wrap;
       gap: 10px;
       font-size: 12px;
+    }
+
+    /* Agent Workspace Panel */
+    .agent-panel {
+      border: 1px solid var(--accent);
+      background: var(--surface);
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .agent-nav {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .agent-tab-btn {
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 4px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .agent-tab-btn.active {
+      background: #1f6feb;
+      border-color: #388bfd;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+      color: var(--text-bright);
+      font-family: var(--font-sans);
+      font-size: 13px;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .alert-box {
+      border: 1px solid var(--border);
+      background: #0d1117;
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-top: 12px;
+      font-size: 12px;
+      display: none;
     }
 
     /* Metrics Grid */
@@ -284,6 +398,16 @@
       border-bottom: none;
     }
 
+    /* Activity cards */
+    .activity-card {
+      border: 1px solid var(--border);
+      background: #0d1117;
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
+
     /* Mechanism specifications */
     .spec-box {
       border: 1px solid var(--border);
@@ -329,8 +453,8 @@
         <div class="brand-subtitle">Autonomous agent marketplace for unverifiable sports scouting intelligence</div>
       </div>
       <div class="header-actions">
+        <button id="btnToggleAgent" class="btn btn-primary" onclick="toggleAgentPanel()">⚡ Act as an Agent</button>
         <span class="tag">Sepolia Testnet</span>
-        <span class="tag">x402 Protocol</span>
         <button id="btnConnect" class="btn" onclick="connectWallet()">Connect Wallet</button>
       </div>
     </header>
@@ -348,6 +472,97 @@
       </div>
     </div>
 
+    <!-- Interactive Agent Workspace -->
+    <div id="agentPanel" class="agent-panel" style="display: none;">
+      <div class="agent-nav">
+        <button id="tabBtnSell" class="agent-tab-btn active" onclick="switchAgentTab('sell')">Sell Intelligence</button>
+        <button id="tabBtnBuy" class="agent-tab-btn" onclick="switchAgentTab('buy')">Browse & Buy</button>
+        <button id="tabBtnActivity" class="agent-tab-btn" onclick="switchAgentTab('activity')">My Activity / Settle</button>
+      </div>
+
+      <!-- Tab: Sell Intelligence -->
+      <div id="view-sell">
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+          Package non-public scouting intelligence, compute cryptographic hash commitment client-side, and publish on-chain.
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Category Bucket</label>
+            <select id="sell-category" class="form-select">
+              <option value="Young Star">Young Star (Prospect / Talent)</option>
+              <option value="Health Flag">Health Flag (Medical / Injury Risk)</option>
+              <option value="Career Change">Career Change (Transfer / Contract)</option>
+              <option value="Performance Edge">Performance Edge (Tactical / Film)</option>
+              <option value="Character Note">Character Note (Locker Room / Fit)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Subject Entity (PlayerName — Team)</label>
+            <input id="sell-title" class="form-input" placeholder="e.g. Devin Brooks — Alabama" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Confidential Intelligence Payload (Plaintext)</label>
+          <textarea id="sell-intel" class="form-textarea" rows="3" placeholder="Enter confidential scouting notes... (Never exposed publicly until purchase reveal)"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Price (ETH)</label>
+            <input id="sell-price" class="form-input mono" type="number" step="0.001" value="0.002" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Verification Nature</label>
+            <select id="sell-type" class="form-select">
+              <option value="0">Falsifiable (Time-bound real-world outcome)</option>
+              <option value="1">Subjective (Qualitative assessment)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">
+          * Plaintext is saved to browser localStorage to generate the commitment hash and enable on-chain reveal once purchased.
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          <button id="btnPublishListing" class="btn btn-primary" onclick="publishListing()">Publish Listing to Sepolia</button>
+          <button id="btnDepositStake" class="btn" style="display: none;" onclick="depositSellerStake()">Deposit 0.01 ETH Stake</button>
+        </div>
+
+        <div id="sellAlert" class="alert-box"></div>
+      </div>
+
+      <!-- Tab: Browse & Buy -->
+      <div id="view-buy" style="display: none;">
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+          Browse available scouting intel below. Clicking <strong>Buy</strong> locks payment in the smart contract escrow until the seller submits on-chain proof-of-reveal.
+        </div>
+      </div>
+
+      <!-- Tab: My Activity / Settle -->
+      <div id="view-activity" style="display: none;">
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+          Manage your pending on-chain reveals as a seller or confirm received intel as a buyer.
+        </div>
+
+        <div id="sellerRevealSection" style="margin-bottom: 16px;">
+          <div class="form-label" style="margin-bottom: 8px;">Pending Reveals (Seller Action Required)</div>
+          <div id="sellerRevealList">
+            <div style="color: var(--text-muted); font-size: 12px;">No pending reveals for connected account.</div>
+          </div>
+        </div>
+
+        <div id="buyerPurchasesSection">
+          <div class="form-label" style="margin-bottom: 8px;">My Purchases & Escrow Confirmations</div>
+          <div id="buyerPurchasesList">
+            <div style="color: var(--text-muted); font-size: 12px;">Connect wallet to inspect purchased intelligence reports.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Metrics Bar -->
     <div class="metrics-grid">
       <div class="metric-card">
@@ -356,13 +571,13 @@
         <div class="metric-sub">Skin-in-the-game deposit</div>
       </div>
       <div class="metric-card">
-        <div class="metric-label">Total Listings</div>
-        <div class="metric-value" id="stat-listings">3</div>
-        <div class="metric-sub">Active scouting claims</div>
+        <div class="metric-label">Active Listings</div>
+        <div class="metric-value" id="stat-listings">0</div>
+        <div class="metric-sub">Standardized scouting claims</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">Escrow Volume</div>
-        <div class="metric-value" id="stat-volume">0.012 ETH</div>
+        <div class="metric-value" id="stat-volume">0.000 ETH</div>
         <div class="metric-sub">Settled purchases</div>
       </div>
       <div class="metric-card">
@@ -378,7 +593,7 @@
       <div>
         <div class="section-header">
           <span class="section-title">Live Scouting Intelligence Feed</span>
-          <span class="tag" id="feedCounter">3 Listings</span>
+          <span class="tag" id="feedCounter">0 Listings</span>
         </div>
 
         <div id="listingsContainer">
@@ -393,7 +608,7 @@
         <!-- Escrow Tracker Table -->
         <div class="section-header">
           <span class="section-title">On-Chain Escrow Tracker</span>
-          <span class="tag" id="escrowCounter">3 Purchases</span>
+          <span class="tag" id="escrowCounter">0 Purchases</span>
         </div>
         <div class="table-box">
           <table>
@@ -441,37 +656,271 @@
       "function listings(uint256) external view returns (uint256 listingId, address seller, bytes32 contentCommitment, string teaser, uint256 price, uint256 expiryTimestamp, uint8 category, uint256 claimResolutionTimestamp, bool active, uint256 createdAt)",
       "function purchases(uint256) external view returns (uint256 purchaseId, uint256 listingId, address buyer, uint256 amountPaid, uint256 revealDeadline, uint8 status, string revealedContent, uint256 disputedAt, string disputeReason)",
       "function getSellerReputation(address seller) external view returns (uint256 stake, uint256 completedSales, uint256 disputesWon, uint256 disputesLost, uint256 resolvedClaims, uint256 accurateClaims, uint256 totalEarnings, uint256 compositeScoreBps)",
-      "function buyIntel(uint256 listingId) external payable returns (uint256)"
+      "function depositStake() external payable",
+      "function createListing(bytes32 contentCommitment, string calldata teaser, uint256 price, uint256 expiryTimestamp, uint8 category, uint256 claimResolutionTimestamp) external returns (uint256)",
+      "function buyIntel(uint256 listingId) external payable returns (uint256)",
+      "function revealIntel(uint256 purchaseId, string calldata plaintextIntel) external",
+      "function confirmReceipt(uint256 purchaseId) external"
     ];
 
     const statusLabels = ["PendingReveal", "Revealed", "Confirmed", "Refunded", "Disputed"];
-    let provider, contract, signer;
+    let provider, contract, signer, userAddress;
 
     async function init() {
       try {
         provider = new ethers.JsonRpcProvider(RPC_URL);
         contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
         await loadContractData();
+
+        // Check if wallet is already connected
+        if (window.ethereum) {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (accounts.length > 0) {
+            await setupSigner();
+          }
+        }
       } catch (err) {
         console.error("RPC Error:", err);
         document.getElementById("rpcStatus").innerText = "RPC Fallback Required";
       }
     }
 
+    function toggleAgentPanel() {
+      const p = document.getElementById("agentPanel");
+      p.style.display = p.style.display === "none" ? "block" : "none";
+      if (p.style.display === "block" && !signer) {
+        connectWallet();
+      }
+    }
+
+    function switchAgentTab(tab) {
+      document.getElementById("view-sell").style.display = tab === "sell" ? "block" : "none";
+      document.getElementById("view-buy").style.display = tab === "buy" ? "block" : "none";
+      document.getElementById("view-activity").style.display = tab === "activity" ? "block" : "none";
+
+      document.getElementById("tabBtnSell").className = "agent-tab-btn" + (tab === "sell" ? " active" : "");
+      document.getElementById("tabBtnBuy").className = "agent-tab-btn" + (tab === "buy" ? " active" : "");
+      document.getElementById("tabBtnActivity").className = "agent-tab-btn" + (tab === "activity" ? " active" : "");
+
+      if (tab === "activity") {
+        renderUserActivity();
+      }
+    }
+
+    async function setupSigner() {
+      try {
+        const web3Provider = new ethers.BrowserProvider(window.ethereum);
+        signer = await web3Provider.getSigner();
+        userAddress = await signer.getAddress();
+        document.getElementById("btnConnect").innerText = `${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
+        contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+        await checkSellerStakeStatus();
+        renderUserActivity();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
     async function connectWallet() {
       if (window.ethereum) {
         try {
-          const web3Provider = new ethers.BrowserProvider(window.ethereum);
-          await web3Provider.send("eth_requestAccounts", []);
-          signer = await web3Provider.getSigner();
-          const userAddress = await signer.getAddress();
-          document.getElementById("btnConnect").innerText = `${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
-          contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+          await window.ethereum.request({ method: "eth_requestAccounts" });
+          await setupSigner();
         } catch (e) {
           alert("Wallet connection error: " + e.message);
         }
       } else {
-        alert("MetaMask or Web3 wallet not detected. Browsing in Read-Only Mode.");
+        alert("MetaMask not found. Please install a Web3 wallet.");
+      }
+    }
+
+    async function checkSellerStakeStatus() {
+      if (!userAddress) return;
+      try {
+        const rep = await contract.getSellerReputation(userAddress);
+        const stakeEth = parseFloat(ethers.formatEther(rep.stake));
+        if (stakeEth < 0.01) {
+          document.getElementById("btnDepositStake").style.display = "inline-flex";
+          document.getElementById("btnDepositStake").innerText = `Deposit Stake (${(0.01 - stakeEth).toFixed(3)} ETH required)`;
+        } else {
+          document.getElementById("btnDepositStake").style.display = "none";
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function depositSellerStake() {
+      if (!signer) return connectWallet();
+      try {
+        const tx = await contract.depositStake({ value: ethers.parseEther("0.01") });
+        showSellAlert(`Depositing stake... Tx: <a href="https://sepolia.etherscan.io/tx/${tx.hash}" target="_blank" class="mono">${tx.hash.slice(0,10)}... ↗</a>`);
+        await tx.wait();
+        showSellAlert(`Stake deposit confirmed! You can now publish listings.`, true);
+        await checkSellerStakeStatus();
+      } catch (err) {
+        showSellAlert("Stake deposit failed: " + err.message);
+      }
+    }
+
+    async function publishListing() {
+      if (!signer) return connectWallet();
+
+      const category = document.getElementById("sell-category").value;
+      const title = document.getElementById("sell-title").value.trim();
+      const plaintext = document.getElementById("sell-intel").value.trim();
+      const priceEth = document.getElementById("sell-price").value.trim();
+      const claimCategory = parseInt(document.getElementById("sell-type").value);
+
+      if (!title || !plaintext || !priceEth) {
+        return showSellAlert("Please provide subject entity title, plaintext intel, and price.");
+      }
+
+      try {
+        const teaser = `[${category}] ${title}`;
+        const commitmentHash = ethers.keccak256(ethers.toUtf8Bytes(plaintext));
+        const priceWei = ethers.parseEther(priceEth);
+        const now = Math.floor(Date.now() / 1000);
+        const expiry = now + 72 * 3600;
+        const resolution = now + 30 * 86400;
+
+        showSellAlert("Submitting createListing transaction to Sepolia...");
+        const tx = await contract.createListing(commitmentHash, teaser, priceWei, expiry, claimCategory, resolution);
+        showSellAlert(`Transaction pending... <a href="https://sepolia.etherscan.io/tx/${tx.hash}" target="_blank" class="mono">${tx.hash.slice(0,14)}... ↗</a>`);
+
+        const receipt = await tx.wait();
+
+        // Store plaintext in localStorage for future on-chain reveal
+        localStorage.setItem(`scout_intel_${commitmentHash}`, plaintext);
+
+        showSellAlert(`Listing confirmed on Sepolia! Commitment: <span class="mono">${commitmentHash.slice(0,14)}...</span> | <a href="https://sepolia.etherscan.io/tx/${tx.hash}" target="_blank">View Tx ↗</a>`, true);
+
+        // Reset form & reload feed
+        document.getElementById("sell-intel").value = "";
+        await loadContractData();
+      } catch (err) {
+        showSellAlert("Listing creation failed: " + (err.reason || err.message));
+      }
+    }
+
+    function showSellAlert(msg, isSuccess = false) {
+      const box = document.getElementById("sellAlert");
+      box.style.display = "block";
+      box.style.borderColor = isSuccess ? "var(--success)" : "var(--accent)";
+      box.innerHTML = msg;
+    }
+
+    async function executeBuy(listingId, priceWei) {
+      if (!signer) return connectWallet();
+      try {
+        const tx = await contract.buyIntel(listingId, { value: priceWei });
+        alert(`Escrow Purchase Submitted! Tx: https://sepolia.etherscan.io/tx/${tx.hash}\nFunds are locked in smart contract escrow.`);
+        await tx.wait();
+        alert(`Purchase confirmed! The seller has been notified to submit on-chain proof-of-reveal.`);
+        await loadContractData();
+        renderUserActivity();
+      } catch (err) {
+        alert("Purchase failed: " + (err.reason || err.message));
+      }
+    }
+
+    async function executeReveal(purchaseId, plaintext) {
+      if (!signer) return connectWallet();
+      try {
+        const tx = await contract.revealIntel(purchaseId, plaintext);
+        alert(`Reveal Submitted! Tx: https://sepolia.etherscan.io/tx/${tx.hash}`);
+        await tx.wait();
+        alert(`Proof of reveal verified and accepted on-chain!`);
+        await loadContractData();
+        renderUserActivity();
+      } catch (err) {
+        alert("Reveal failed: " + (err.reason || err.message));
+      }
+    }
+
+    async function executeConfirmReceipt(purchaseId) {
+      if (!signer) return connectWallet();
+      try {
+        const tx = await contract.confirmReceipt(purchaseId);
+        alert(`Confirming receipt & releasing escrow funds to seller... Tx: https://sepolia.etherscan.io/tx/${tx.hash}`);
+        await tx.wait();
+        alert(`Escrow released successfully! Seller reputation score updated.`);
+        await loadContractData();
+        renderUserActivity();
+      } catch (err) {
+        alert("Confirmation failed: " + (err.reason || err.message));
+      }
+    }
+
+    async function renderUserActivity() {
+      if (!userAddress || !contract) return;
+      try {
+        const purchaseCount = await contract.purchaseCounter();
+        const sellerRevealList = document.getElementById("sellerRevealList");
+        const buyerPurchasesList = document.getElementById("buyerPurchasesList");
+
+        let sellerPendingHtml = "";
+        let buyerPurchasesHtml = "";
+
+        for (let j = Number(purchaseCount); j >= 1; j--) {
+          const p = await contract.purchases(j);
+          const listing = await contract.listings(p.listingId);
+
+          // If current user is seller of this listing and purchase is PendingReveal
+          if (listing.seller.toLowerCase() === userAddress.toLowerCase()) {
+            if (Number(p.status) === 0) {
+              const storedIntel = localStorage.getItem(`scout_intel_${listing.contentCommitment}`);
+              sellerPendingHtml += `
+                <div class="activity-card">
+                  <div class="d-flex justify-content-between mb-1">
+                    <strong>Purchase #${p.purchaseId} on Listing #${p.listingId}</strong>
+                    <span class="tag">Pending Reveal</span>
+                  </div>
+                  <div class="text-muted small mb-2">${listing.teaser} (Escrow: ${ethers.formatEther(p.amountPaid)} ETH)</div>
+                  ${storedIntel ? 
+                    `<button class="btn btn-sm btn-primary" onclick="executeReveal(${p.purchaseId}, '${storedIntel.replace(/'/g, "\\'")}')">Submit Proof-of-Reveal On-Chain</button>` : 
+                    `<span class="mono small" style="color: #f87171;">Plaintext intel not found in this browser's localStorage.</span>`
+                  }
+                </div>
+              `;
+            }
+          }
+
+          // If current user is buyer of this purchase
+          if (p.buyer.toLowerCase() === userAddress.toLowerCase()) {
+            const statusIdx = Number(p.status);
+            let actionBtn = "";
+            let intelDisplay = "";
+
+            if (statusIdx === 0) {
+              actionBtn = `<span class="tag">Awaiting Seller Reveal</span>`;
+            } else if (statusIdx === 1) {
+              intelDisplay = `<div style="background: #161b22; border: 1px solid var(--border); padding: 8px; border-radius: 4px; margin: 6px 0; font-size: 12px; color: var(--text-bright);">${p.revealedContent}</div>`;
+              actionBtn = `<button class="btn btn-sm btn-primary" onclick="executeConfirmReceipt(${p.purchaseId})">Confirm Receipt & Release Escrow</button>`;
+            } else if (statusIdx === 2) {
+              actionBtn = `<span class="tag tag-accent">Confirmed & Settled</span>`;
+              intelDisplay = `<div style="color: var(--text-muted); font-size: 11px;">Intel: ${p.revealedContent}</div>`;
+            }
+
+            buyerPurchasesHtml += `
+              <div class="activity-card">
+                <div class="d-flex justify-content-between mb-1">
+                  <strong>Purchase #${p.purchaseId} — Listing #${p.listingId}</strong>
+                  <span class="mono">${ethers.formatEther(p.amountPaid)} ETH</span>
+                </div>
+                <div class="text-muted small">${listing.teaser}</div>
+                ${intelDisplay}
+                <div class="mt-2">${actionBtn}</div>
+              </div>
+            `;
+          }
+        }
+
+        sellerRevealList.innerHTML = sellerPendingHtml || '<div style="color: var(--text-muted); font-size: 12px;">No pending reveals for connected seller account.</div>';
+        buyerPurchasesList.innerHTML = buyerPurchasesHtml || '<div style="color: var(--text-muted); font-size: 12px;">No purchases recorded for connected buyer account.</div>';
+
+      } catch (e) {
+        console.error("Activity load error:", e);
       }
     }
 
@@ -487,7 +936,6 @@
         listingsContainer.innerHTML = "";
         let visibleListingsCount = 0;
 
-        // Fetch seller reputation for stat cards from seller address if listings exist
         if (Number(listingCount) > 0) {
           const sampleItem = await contract.listings(1);
           const rep = await contract.getSellerReputation(sampleItem.seller);
@@ -499,10 +947,9 @@
         for (let i = Number(listingCount); i >= 1; i--) {
           const item = await contract.listings(i);
 
-          // Filter: only show listings whose teaser matches the tightened format [Category] PlayerName — Team
           const match = item.teaser.match(/^\[([^\]]+)\]\s*(.*)$/);
           if (!match) {
-            continue; // Skip legacy historical demo listings
+            continue; // Filter out legacy historical demo listings
           }
 
           visibleListingsCount++;
@@ -516,7 +963,7 @@
             '<span class="tag">Falsifiable Claim</span>' : 
             '<span class="tag">Subjective Analysis</span>';
 
-          const teaserHtml = `<span class="tag mono" style="margin-right: 6px; color: var(--text-bright);">${match[1]}</span><span>${match[2]}</span>`;
+          const teaserHtml = `<span class="tag mono" style="margin-right: 6px; color: var(--text-bright); border-color: #3b82f6;">${match[1]}</span><span>${match[2]}</span>`;
 
           const cardHtml = `
             <div class="listing-item">
@@ -544,6 +991,10 @@
                 <div class="meta-row">
                   <span class="meta-key">Seller Reputation:</span>
                   <span class="mono">${scorePct}% (${scoreBps} bps)</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary">
+                  <span class="mono small" style="color: var(--text-muted);">Escrow Protected</span>
+                  <button class="btn btn-sm btn-primary" onclick="executeBuy(${item.listingId}, ${item.price})">Buy for ${priceEth} ETH</button>
                 </div>
               </div>
             </div>
