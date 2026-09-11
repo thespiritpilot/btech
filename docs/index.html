@@ -901,6 +901,7 @@
         await tx.wait();
         showSellAlert(`Stake deposit confirmed! You can now publish listings.`, true);
         await checkSellerStakeStatus();
+        await loadContractData();
       } catch (err) {
         showSellAlert("Stake deposit failed: " + (err.reason || err.message));
       }
