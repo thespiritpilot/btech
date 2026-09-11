@@ -660,7 +660,8 @@
       "function createListing(bytes32 contentCommitment, string calldata teaser, uint256 price, uint256 expiryTimestamp, uint8 category, uint256 claimResolutionTimestamp) external returns (uint256)",
       "function buyIntel(uint256 listingId) external payable returns (uint256)",
       "function revealIntel(uint256 purchaseId, string calldata plaintextIntel) external",
-      "function confirmReceipt(uint256 purchaseId) external"
+      "function confirmReceipt(uint256 purchaseId) external",
+      "function claimTimeoutRefund(uint256 purchaseId) external"
     ];
 
     const statusLabels = ["PendingReveal", "Revealed", "Confirmed", "Refunded", "Disputed"];
@@ -810,8 +811,16 @@
       box.innerHTML = msg;
     }
 
-    async function executeBuy(listingId, priceWei) {
+    async function executeBuy(btn, listingId, priceWei) {
       if (!signer) return connectWallet();
+      // Guard against double-submission (e.g. a double-click) firing two buyIntel txs
+      // for the same listing before the first one confirms and the feed reloads.
+      if (btn && btn.disabled) return;
+      const originalLabel = btn ? btn.innerText : null;
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = "Confirming...";
+      }
       try {
         const tx = await contract.buyIntel(listingId, { value: priceWei });
         alert(`Escrow Purchase Submitted! Tx: https://sepolia.etherscan.io/tx/${tx.hash}\nFunds are locked in smart contract escrow.`);
@@ -821,6 +830,24 @@
         renderUserActivity();
       } catch (err) {
         alert("Purchase failed: " + (err.reason || err.message));
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalLabel;
+        }
+      }
+    }
+
+    async function executeClaimRefund(purchaseId) {
+      if (!signer) return connectWallet();
+      try {
+        const tx = await contract.claimTimeoutRefund(purchaseId);
+        alert(`Claiming timeout refund... Tx: https://sepolia.etherscan.io/tx/${tx.hash}`);
+        await tx.wait();
+        alert(`Refund claimed! Escrowed ETH plus a slashed seller-stake penalty were returned to you.`);
+        await loadContractData();
+        renderUserActivity();
+      } catch (err) {
+        alert("Refund claim failed: " + (err.reason || err.message));
       }
     }
 
@@ -893,7 +920,11 @@
             let intelDisplay = "";
 
             if (statusIdx === 0) {
-              actionBtn = `<span class="tag">Awaiting Seller Reveal</span>`;
+              const nowSec = Math.floor(Date.now() / 1000);
+              const deadlinePassed = nowSec > Number(p.revealDeadline);
+              actionBtn = deadlinePassed
+                ? `<button class="btn btn-sm btn-primary" onclick="executeClaimRefund(${p.purchaseId})">Reveal Deadline Passed — Claim Timeout Refund</button>`
+                : `<span class="tag">Awaiting Seller Reveal</span>`;
             } else if (statusIdx === 1) {
               intelDisplay = `<div style="background: #161b22; border: 1px solid var(--border); padding: 8px; border-radius: 4px; margin: 6px 0; font-size: 12px; color: var(--text-bright);">${p.revealedContent}</div>`;
               actionBtn = `<button class="btn btn-sm btn-primary" onclick="executeConfirmReceipt(${p.purchaseId})">Confirm Receipt & Release Escrow</button>`;
@@ -943,6 +974,19 @@
           document.getElementById("stat-rep").innerHTML = `${rep.compositeScoreBps.toString()} <span style="font-size: 11px; font-weight: normal; color: var(--text-muted);">/ 10,000</span>`;
         }
 
+        // Listings the connected wallet already holds an unresolved purchase against
+        // (PendingReveal or Revealed) — used to stop the same buyer from re-purchasing
+        // the same intel before their existing purchase is confirmed or refunded.
+        const buyerActiveListingIds = new Set();
+        if (userAddress) {
+          for (let j = 1; j <= Number(purchaseCount); j++) {
+            const p = await contract.purchases(j);
+            if (p.buyer.toLowerCase() === userAddress.toLowerCase() && (Number(p.status) === 0 || Number(p.status) === 1)) {
+              buyerActiveListingIds.add(Number(p.listingId));
+            }
+          }
+        }
+
         // Iterate listings descending (newest to oldest)
         for (let i = Number(listingCount); i >= 1; i--) {
           const item = await contract.listings(i);
@@ -964,6 +1008,11 @@
             '<span class="tag">Subjective Analysis</span>';
 
           const teaserHtml = `<span class="tag mono" style="margin-right: 6px; color: var(--text-bright); border-color: #3b82f6;">${match[1]}</span><span>${match[2]}</span>`;
+
+          const alreadyPurchased = buyerActiveListingIds.has(Number(item.listingId));
+          const buyActionHtml = alreadyPurchased
+            ? `<span class="tag tag-accent">Already Purchased — See My Activity</span>`
+            : `<button class="btn btn-sm btn-primary" onclick="executeBuy(this, ${item.listingId}, ${item.price})">Buy for ${priceEth} ETH</button>`;
 
           const cardHtml = `
             <div class="listing-item">
@@ -994,7 +1043,7 @@
                 </div>
                 <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary">
                   <span class="mono small" style="color: var(--text-muted);">Escrow Protected</span>
-                  <button class="btn btn-sm btn-primary" onclick="executeBuy(${item.listingId}, ${item.price})">Buy for ${priceEth} ETH</button>
+                  ${buyActionHtml}
                 </div>
               </div>
             </div>
