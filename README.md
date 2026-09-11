@@ -102,21 +102,40 @@ PURCHASE_ID=6 npm run dispute         # raises a dispute, then has the juror com
 
 ### How an Autonomous Agent Actually Connects (Not Just the CLI)
 
-The `npm run` commands above are a **human-operated** wrapper — someone deciding when to type each one. A real autonomous agent skips that entirely: it imports the same `SellerAgent` / `BuyerAgent` classes directly and calls their methods from its own process, with no terminal and no human triggering each step.
+The `npm run` commands above are a **human-operated** wrapper — someone deciding when to type each one. A real autonomous agent skips that entirely: it imports the same `SellerAgent` / `BuyerAgent` classes directly and calls their methods from its own process, with no terminal and no human triggering each step. "Connecting to the contract" means acquiring four specific things and combining them into one object. Here is each one, concretely, with where it actually comes from in this repo — not a hypothetical.
 
-**Connecting to the contract** is the same three lines everywhere in this repo — a JSON-RPC provider, a wallet from a private key, and a `Contract` instance bound to that wallet as its signer:
+**1. An identity — its own private key.** The contract has no login, no API key, no signup. An agent's *entire* identity is one Ethereum keypair; whatever address that key controls is who the contract thinks is calling. For a brand-new agent, that key doesn't exist until you generate it:
+```js
+const wallet = ethers.Wallet.createRandom();
+console.log(wallet.address, wallet.privateKey); // this IS the agent's identity, nothing more
+```
+This repo doesn't make agents generate a fresh key at runtime — it pre-generates dedicated ones per role and stores them in `.env` (gitignored, never committed): `SELLER_PK`, `BUYER_PK`, `ARBITRATOR_PK`, plus 10 more in `agents/.jurors.json` for the committee (`scripts/setup_jurors.js` is literally "generate `Wallet.createRandom()` × 10 and save the keys"). Whichever key the agent loads *is* which role it plays — nothing else designates "this is the seller agent" beyond "this process holds `SELLER_PK`."
 
+**2. Gas money.** A freshly generated key controls zero ETH and can't send anything, not even a read costs gas but every write does. This repo's `scripts/setup_jurors.js` funds its 10 new wallets by having the already-funded deployer account send each one `0.0015 ETH` — that's the pattern: an existing funded account (or a public Sepolia faucet, for a truly new agent with no operator backing it) has to send the new address some test ETH before it can do anything but read.
+
+**3. A network connection — the provider.** This is the read-only pipe to Sepolia itself, independent of any identity:
+```js
+const provider = new ethers.JsonRpcProvider("https://ethereum-sepolia-rpc.publicnode.com");
+```
+This is the exact URL `ui/index.html`, `ui/arbitrator.html`, and every `scripts/cli_*.js` file all use. Any public Sepolia RPC endpoint works — this one just happens to be free and requires no API key.
+
+**4. The contract's address and interface (ABI).** The address is fixed and public — `0xb69A7Bbbc5d0128BFbFE3D92c5f275B7DAeC5a8B`, saved in this repo's own `deployed_addresses.json` after deployment. The ABI (which functions exist, their argument types) comes from compiling the Solidity — `npm run compile` produces it at `artifacts/contracts/ScoutMarket.sol/ScoutMarket.json`. The browser pages skip that build step and hand-write a minimal ABI array of just the function signatures they call (see the `const ABI = [...]` block near the top of `ui/index.html`'s `<script>`) — both are the same interface, just sourced differently.
+
+**Put together, this is the whole thing — copy-pasteable, every value real:**
 ```js
 const { ethers } = require("ethers");
 
-const provider = new ethers.JsonRpcProvider(process.env.SEPOLIA_RPC || "https://ethereum-sepolia-rpc.publicnode.com");
-const wallet = new ethers.Wallet(process.env.SELLER_PK, provider);   // or BUYER_PK, or a juror key
-const artifact = require("./artifacts/contracts/ScoutMarket.sol/ScoutMarket.json");
+const CONTRACT_ADDRESS = "0xb69A7Bbbc5d0128BFbFE3D92c5f275B7DAeC5a8B"; // from deployed_addresses.json
+const provider = new ethers.JsonRpcProvider("https://ethereum-sepolia-rpc.publicnode.com");
+const wallet = new ethers.Wallet(process.env.SELLER_PK, provider);     // the agent's identity + gas money
+const artifact = require("./artifacts/contracts/ScoutMarket.sol/ScoutMarket.json"); // from `npm run compile`
 const contract = new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, wallet);
-// contract.connect(wallet) is now signer-bound — every write call submits a real, signed tx.
-```
 
-That's it — no SDK, no special "agent" runtime. Anything below is just JavaScript calling `contract.method(...)` in a loop instead of a human clicking a button.
+// Sanity-check the connection before doing anything else:
+console.log("Connected as:", wallet.address);
+console.log("Listings so far:", (await contract.listingCounter()).toString()); // a free read call
+```
+After this, `contract.listings(id)` / `contract.purchases(id)` / `contract.evaluateListing(id)` are **free reads** — no gas, no signature, anyone can call them, even with no wallet at all (that's how the read-only feed in `ui/index.html` works with no wallet connected). But `contract.buyIntel(...)`, `contract.revealIntel(...)`, `contract.castVote(...)` — anything that changes state — gets signed by `wallet` automatically and costs real gas from whatever ETH it holds, the instant you call it. There is no separate "connect" step beyond building this one `contract` object; every subsequent call either reads for free or signs-and-broadcasts for real, depending only on whether that function is `view` or not.
 
 **Example 1 — the seller side, already real and already running.** [`agents/seller_agent.js`](agents/seller_agent.js)'s `watchAndAutoReveal()` is a standing loop: start it once (`npm run watch:seller`) and it polls every 10 seconds, forever, with zero further input:
 
