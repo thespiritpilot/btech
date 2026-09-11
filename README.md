@@ -90,13 +90,29 @@ Result: Purchase #1 → `Refunded`, buyer compensated, seller stake slashed — 
 
 ## Doing Everything From the Terminal
 
-Every activity has a CLI equivalent, driven by the same `agents/seller_agent.js` / `agents/buyer_agent.js` classes the browser UI uses under the hood — useful for scripting, or for a demo video that wants to show a bare transaction going out without a browser in the way:
+Every activity has a CLI equivalent, driven by the same `agents/seller_agent.js` / `agents/buyer_agent.js` classes the browser UI uses under the hood — useful for scripting, or for a demo video that wants to show a bare transaction going out without a browser in the way. Each script reads its parameters from environment variables, all optional with sensible defaults:
 
+| Script | Env vars it reads | Defaults if unset |
+| --- | --- | --- |
+| `npm run sell` | `TEASER`, `INTEL`, `PRICE_ETH` | `"[Young Star] Marcus Vance — Georgia"`, a canned report, `0.002` |
+| `npm run buy` | `LISTING_ID` | most recently created listing |
+| `npm run dispute` | `PURCHASE_ID` (required), `REASON`, `ACCEPT_VOTES` (default `3`), `SKIP_VOTES` | see below |
+
+**macOS/Linux (bash/zsh)** — set inline, on the same line as the command:
 ```bash
-npm run sell                          # creates a listing (auto-stakes first if needed)
-LISTING_ID=8 npm run buy              # buys a specific listing (defaults to the newest one)
-PURCHASE_ID=6 npm run dispute         # raises a dispute, then has the juror committee vote it
+npm run sell
+TEASER="[Health Flag] Jaylen Cole — Oregon" INTEL="Shoulder fatigue on film, 8-week re-injury risk" PRICE_ETH=0.003 npm run sell
+LISTING_ID=8 npm run buy
+PURCHASE_ID=6 npm run dispute
 ```
+
+**Windows PowerShell** — this inline syntax does not exist in PowerShell; it will silently ignore the variables and just run with defaults, which is a common trap. Set each one with `$env:` first, *then* run the command:
+```powershell
+$env:TEASER="[Health Flag] Jaylen Cole — Oregon"; $env:INTEL="Shoulder fatigue on film, 8-week re-injury risk"; $env:PRICE_ETH="0.003"; npm run sell
+$env:LISTING_ID="8"; npm run buy
+$env:PURCHASE_ID="6"; npm run dispute
+```
+`$env:` variables persist for the rest of the PowerShell session, not just one command — clear them when done so a later plain `npm run sell` doesn't silently reuse old values: `Remove-Item Env:\TEASER, Env:\INTEL, Env:\PRICE_ETH`.
 
 `npm run dispute` accepts `ACCEPT_VOTES` (default `3`) to control how many jurors vote to accept the challenge before the rest vote deny — `ACCEPT_VOTES=0` demonstrates the seller-wins path. Pass `SKIP_VOTES=1` to raise the dispute and leave it open for manual voting via `arbitrator.html` instead. Run `npm run setup:jurors` once first to generate and fund the 10-address committee (saved locally to `agents/.jurors.json`, gitignored — never commit it).
 
