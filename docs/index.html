@@ -480,34 +480,43 @@
         const listingCount = await contract.listingCounter();
         const purchaseCount = await contract.purchaseCounter();
 
-        document.getElementById("stat-listings").innerText = listingCount.toString();
-        document.getElementById("feedCounter").innerText = `${listingCount.toString()} Listings`;
         document.getElementById("escrowCounter").innerText = `${purchaseCount.toString()} Purchases`;
 
         let totalVolumeWei = 0n;
         const listingsContainer = document.getElementById("listingsContainer");
         listingsContainer.innerHTML = "";
+        let visibleListingsCount = 0;
 
-        for (let i = 1; i <= Number(listingCount); i++) {
+        // Fetch seller reputation for stat cards from seller address if listings exist
+        if (Number(listingCount) > 0) {
+          const sampleItem = await contract.listings(1);
+          const rep = await contract.getSellerReputation(sampleItem.seller);
+          document.getElementById("stat-stake").innerText = `${ethers.formatEther(rep.stake)} ETH`;
+          document.getElementById("stat-rep").innerHTML = `${rep.compositeScoreBps.toString()} <span style="font-size: 11px; font-weight: normal; color: var(--text-muted);">/ 10,000</span>`;
+        }
+
+        // Iterate listings descending (newest to oldest)
+        for (let i = Number(listingCount); i >= 1; i--) {
           const item = await contract.listings(i);
+
+          // Filter: only show listings whose teaser matches the tightened format [Category] PlayerName — Team
+          const match = item.teaser.match(/^\[([^\]]+)\]\s*(.*)$/);
+          if (!match) {
+            continue; // Skip legacy historical demo listings
+          }
+
+          visibleListingsCount++;
           const rep = await contract.getSellerReputation(item.seller);
           const priceEth = ethers.formatEther(item.price);
           const stakeEth = ethers.formatEther(rep.stake);
           const scoreBps = Number(rep.compositeScoreBps);
           const scorePct = (scoreBps / 100).toFixed(1);
 
-          document.getElementById("stat-stake").innerText = `${stakeEth} ETH`;
-          document.getElementById("stat-rep").innerHTML = `${scoreBps} <span style="font-size: 11px; font-weight: normal; color: var(--text-muted);">/ 10,000</span>`;
-
           const categoryTag = item.category === 0 ? 
             '<span class="tag">Falsifiable Claim</span>' : 
             '<span class="tag">Subjective Analysis</span>';
 
-          let teaserHtml = item.teaser;
-          const match = item.teaser.match(/^\[([^\]]+)\]\s*(.*)$/);
-          if (match) {
-            teaserHtml = `<span class="tag mono" style="margin-right: 6px; color: var(--text-bright);">${match[1]}</span><span>${match[2]}</span>`;
-          }
+          const teaserHtml = `<span class="tag mono" style="margin-right: 6px; color: var(--text-bright);">${match[1]}</span><span>${match[2]}</span>`;
 
           const cardHtml = `
             <div class="listing-item">
@@ -542,10 +551,18 @@
           listingsContainer.insertAdjacentHTML("beforeend", cardHtml);
         }
 
+        if (visibleListingsCount === 0) {
+          listingsContainer.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--text-muted);">No active standardized listings found.</div>';
+        }
+
+        document.getElementById("stat-listings").innerText = visibleListingsCount.toString();
+        document.getElementById("feedCounter").innerText = `${visibleListingsCount} Active Listing${visibleListingsCount === 1 ? '' : 's'}`;
+
         const escrowTbody = document.getElementById("escrowTableBody");
         escrowTbody.innerHTML = "";
 
-        for (let j = 1; j <= Number(purchaseCount); j++) {
+        // Iterate purchases descending (newest to oldest)
+        for (let j = Number(purchaseCount); j >= 1; j--) {
           const p = await contract.purchases(j);
           totalVolumeWei += p.amountPaid;
           const statusIdx = Number(p.status);
