@@ -13,7 +13,6 @@
       --text-bright: #f0f6fc;
       --text-muted: #8b949e;
       --accent: #58a6ff;
-      --accent-hover: #79b8ff;
       --success: #3fb950;
       --danger: #f87171;
       --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -179,7 +178,7 @@
 
     /* Agent Workspace Panel (real, wallet-connected, on-chain actions) */
     .agent-panel {
-      border: 1px solid var(--success);
+      border: 1px solid var(--border);
       background: var(--surface);
       border-radius: 6px;
       padding: 16px;
@@ -206,9 +205,8 @@
     }
 
     .agent-tab-btn.active {
-      background: #238636;
-      border-color: #2ea043;
-      color: #ffffff;
+      background: var(--border);
+      color: var(--text-bright);
       font-weight: 600;
     }
 
@@ -274,7 +272,7 @@
 
     /* Simulation Panel (local walkthrough, no wallet needed) */
     .sim-panel {
-      border: 1px solid var(--accent);
+      border: 1px solid var(--border);
       background: var(--surface);
       border-radius: 6px;
       padding: 16px;
@@ -338,16 +336,12 @@
     }
 
     .sim-summary {
-      border: 1px solid var(--success);
+      border: 1px solid var(--border);
       background: #0d1117;
       border-radius: 6px;
       padding: 10px 12px;
       font-size: 12px;
       color: var(--text-bright);
-    }
-
-    .sim-summary.dispute {
-      border-color: var(--danger);
     }
 
     /* Metrics Grid */
@@ -565,8 +559,8 @@
         <div class="brand-subtitle">Autonomous agent marketplace for unverifiable sports scouting intelligence</div>
       </div>
       <div class="header-actions">
-        <button id="btnToggleAgent" class="btn" style="background:#238636;border-color:#2ea043;color:#fff;font-weight:600;" onclick="toggleAgentPanel()">⚡ Act as an Agent (Live On-Chain)</button>
-        <button id="btnToggleSim" class="btn btn-primary" onclick="toggleSimPanel()">▶ Run Simulation</button>
+        <button id="btnToggleAgent" class="btn btn-primary" onclick="toggleAgentPanel()">Act as an Agent</button>
+        <button id="btnToggleSim" class="btn" onclick="toggleSimPanel()">Run Simulation</button>
         <span class="tag">Sepolia Testnet</span>
         <button id="btnConnect" class="btn" onclick="connectWallet()">Connect Wallet</button>
       </div>
@@ -577,7 +571,7 @@
       <div>
         <span class="muted">Contract:</span>
         <a id="contractLink" href="https://sepolia.etherscan.io/address/0xb69A7Bbbc5d0128BFbFE3D92c5f275B7DAeC5a8B#code" target="_blank" class="mono" style="margin-left: 4px;">
-          0xb69A7Bbbc5d0128BFbFE3D92c5f275B7DAeC5a8B ↗
+          0xb69A7Bbbc5d0128BFbFE3D92c5f275B7DAeC5a8B
         </a>
       </div>
       <div class="muted">
@@ -588,7 +582,7 @@
     <!-- Interactive Agent Workspace: REAL wallet-connected on-chain actions -->
     <div id="agentPanel" class="agent-panel" style="display: none;">
       <div class="small muted" style="margin-bottom: 12px;">
-        Connect MetaMask and act directly as a Seller or Buyer agent. Every action here submits a <strong>real transaction</strong> to Sepolia — real gas, real Etherscan confirmation.
+        Every action below submits a real transaction to Sepolia.
       </div>
       <div class="agent-nav">
         <button id="tabBtnSell" class="agent-tab-btn active" onclick="switchAgentTab('sell')">Sell Intelligence</button>
@@ -598,10 +592,6 @@
 
       <!-- Tab: Sell Intelligence -->
       <div id="view-sell">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
-          Package non-public scouting intelligence, compute cryptographic hash commitment client-side, and publish on-chain.
-        </div>
-
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Category Bucket</label>
@@ -639,7 +629,7 @@
         </div>
 
         <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">
-          * Plaintext is saved to this browser's localStorage to generate the commitment hash and enable the on-chain reveal once purchased. Reveal must be triggered from this same browser session.
+          Plaintext is cached in this browser to enable the on-chain reveal later.
         </div>
 
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
@@ -653,16 +643,12 @@
       <!-- Tab: Browse & Buy -->
       <div id="view-buy" style="display: none;">
         <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
-          Browse available scouting intel in the <strong>Live Scouting Intelligence Feed</strong> below. Clicking <strong>Buy</strong> locks real payment in the smart contract escrow until the seller submits on-chain proof-of-reveal.
+          Buy from the listings feed below.
         </div>
       </div>
 
       <!-- Tab: My Activity / Settle -->
       <div id="view-activity" style="display: none;">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
-          Manage your pending on-chain reveals as a seller, or confirm/claim-refund received intel as a buyer.
-        </div>
-
         <div id="sellerRevealSection" style="margin-bottom: 16px;">
           <div class="form-label" style="margin-bottom: 8px;">Pending Reveals (Seller Action Required)</div>
           <div id="sellerRevealList">
@@ -677,16 +663,15 @@
           </div>
         </div>
 
-        <div class="alert-box" style="display: block; border-color: var(--accent);">
-          Disputes here are resolved by a real 10-person juror committee, not a single arbitrator —
-          track live votes and cast your own at <a href="arbitrator.html" target="_blank">arbitrator.html ↗</a>.
+        <div class="alert-box" style="display: block;">
+          Disputes are resolved by committee vote — see <a href="arbitrator.html" target="_blank">arbitrator.html</a>.
         </div>
 
         <!-- Only visible when the connected wallet IS the deployed contract's
              single arbitrator address — resolveDispute() reverts on-chain for
              anyone else. Kept as a manual override alongside the committee. -->
         <div id="arbitratorDisputesSection" style="display:none; margin-top:16px;">
-          <div class="form-label" style="margin-bottom: 8px;">Emergency Override — Single Arbitrator</div>
+          <div class="form-label" style="margin-bottom: 8px;">Emergency Override</div>
           <div id="arbitratorDisputesList">
             <div style="color: var(--text-muted); font-size: 12px;">No disputes awaiting ruling.</div>
           </div>
@@ -697,13 +682,13 @@
     <!-- Simulation Panel: local walkthrough, no wallet needed -->
     <div id="simPanel" class="sim-panel" style="display: none;">
       <div class="small muted" style="margin-bottom: 14px;">
-        A local walkthrough of the contract's flow — no wallet, no gas, nothing sent on-chain. For a real transaction, use "Act as an Agent" above instead.
+        Local walkthrough — no wallet, no gas, nothing on-chain.
       </div>
 
       <div class="sim-controls">
-        <button id="btnRunHappy" class="btn btn-primary" onclick="runSimulation('happy')">▶ Run Happy-Path Simulation</button>
-        <button id="btnRunDispute" class="btn" onclick="runSimulation('dispute')">⚠ Run Dispute &amp; Slash Simulation</button>
-        <button id="btnResetSim" class="btn" onclick="resetSimulation()" style="display: none;">↺ Reset</button>
+        <button id="btnRunHappy" class="btn btn-primary" onclick="runSimulation('happy')">Run Happy-Path Simulation</button>
+        <button id="btnRunDispute" class="btn" onclick="runSimulation('dispute')">Run Dispute Simulation</button>
+        <button id="btnResetSim" class="btn" onclick="resetSimulation()" style="display: none;">Reset</button>
       </div>
 
       <div id="simTimeline"></div>
@@ -924,9 +909,9 @@
       if (!signer) return connectWallet();
       try {
         const tx = await contract.depositStake({ value: ethers.parseEther("0.01") });
-        showSellAlert(`Depositing stake... Tx: <a href="https://sepolia.etherscan.io/tx/${tx.hash}" target="_blank" class="mono">${tx.hash.slice(0,10)}... ↗</a>`);
+        showSellAlert(`Depositing stake. Tx: <a href="https://sepolia.etherscan.io/tx/${tx.hash}" target="_blank" class="mono">${tx.hash.slice(0,10)}...</a>`);
         await tx.wait();
-        showSellAlert(`Stake deposit confirmed! You can now publish listings.`, true);
+        showSellAlert(`Stake deposit confirmed.`, true);
         await checkSellerStakeStatus();
         await loadContractData();
       } catch (err) {
@@ -957,14 +942,14 @@
 
         showSellAlert("Submitting createListing transaction to Sepolia...");
         const tx = await contract.createListing(commitmentHash, teaser, priceWei, expiry, claimCategory, resolution);
-        showSellAlert(`Transaction pending... <a href="https://sepolia.etherscan.io/tx/${tx.hash}" target="_blank" class="mono">${tx.hash.slice(0,14)}... ↗</a>`);
+        showSellAlert(`Transaction pending. <a href="https://sepolia.etherscan.io/tx/${tx.hash}" target="_blank" class="mono">${tx.hash.slice(0,14)}...</a>`);
 
         await tx.wait();
 
         // Store plaintext in localStorage for future on-chain reveal
         localStorage.setItem(`scout_intel_${commitmentHash}`, plaintext);
 
-        showSellAlert(`Listing confirmed on Sepolia! Commitment: <span class="mono">${commitmentHash.slice(0,14)}...</span> | <a href="https://sepolia.etherscan.io/tx/${tx.hash}" target="_blank">View Tx ↗</a>`, true);
+        showSellAlert(`Listing confirmed. Commitment: <span class="mono">${commitmentHash.slice(0,14)}...</span> — <a href="https://sepolia.etherscan.io/tx/${tx.hash}" target="_blank">view tx</a>`, true);
 
         document.getElementById("sell-intel").value = "";
         await loadContractData();
@@ -992,7 +977,7 @@
       }
       try {
         const tx = await contract.buyIntel(listingId, { value: priceWei });
-        alert(`Escrow Purchase Submitted! Tx: https://sepolia.etherscan.io/tx/${tx.hash}\nFunds are locked in smart contract escrow.`);
+        alert(`Purchase submitted. Tx: https://sepolia.etherscan.io/tx/${tx.hash}`);
         const receipt = await tx.wait();
 
         // Pull the new purchaseId out of the IntelPurchased event.
@@ -1029,8 +1014,8 @@
         }
 
         alert(autoRevealed
-          ? `Purchase confirmed and intel auto-revealed instantly! Head to My Activity to confirm receipt & release escrow.`
-          : `Purchase confirmed! The seller has been notified to submit on-chain proof-of-reveal.`);
+          ? `Purchase confirmed and revealed. See My Activity to confirm receipt.`
+          : `Purchase confirmed. Awaiting seller reveal.`);
         await loadContractData();
         renderUserActivity();
       } catch (err) {
@@ -1046,9 +1031,9 @@
       if (!signer) return connectWallet();
       try {
         const tx = await contract.claimTimeoutRefund(purchaseId);
-        alert(`Claiming timeout refund... Tx: https://sepolia.etherscan.io/tx/${tx.hash}`);
+        alert(`Refund submitted. Tx: https://sepolia.etherscan.io/tx/${tx.hash}`);
         await tx.wait();
-        alert(`Refund claimed! Escrowed ETH plus a slashed seller-stake penalty were returned to you.`);
+        alert(`Refund confirmed.`);
         await loadContractData();
         renderUserActivity();
       } catch (err) {
@@ -1060,9 +1045,9 @@
       if (!signer) return connectWallet();
       try {
         const tx = await contract.revealIntel(purchaseId, plaintext);
-        alert(`Reveal Submitted! Tx: https://sepolia.etherscan.io/tx/${tx.hash}`);
+        alert(`Reveal submitted. Tx: https://sepolia.etherscan.io/tx/${tx.hash}`);
         await tx.wait();
-        alert(`Proof of reveal verified and accepted on-chain!`);
+        alert(`Reveal confirmed.`);
         await loadContractData();
         renderUserActivity();
       } catch (err) {
@@ -1074,9 +1059,9 @@
       if (!signer) return connectWallet();
       try {
         const tx = await contract.confirmReceipt(purchaseId);
-        alert(`Confirming receipt & releasing escrow funds to seller... Tx: https://sepolia.etherscan.io/tx/${tx.hash}`);
+        alert(`Confirmation submitted. Tx: https://sepolia.etherscan.io/tx/${tx.hash}`);
         await tx.wait();
-        alert(`Escrow released successfully! Seller reputation score updated.`);
+        alert(`Escrow released.`);
         await loadContractData();
         renderUserActivity();
       } catch (err) {
@@ -1094,9 +1079,9 @@
       try {
         const bond = await contract.disputeBond();
         const tx = await contract.disputePurchase(purchaseId, reason, { value: bond });
-        alert(`Dispute filed! Tx: https://sepolia.etherscan.io/tx/${tx.hash}\n${ethers.formatEther(bond)} ETH bond locked.`);
+        alert(`Dispute submitted. Tx: https://sepolia.etherscan.io/tx/${tx.hash}`);
         await tx.wait();
-        alert(`Dispute recorded on-chain — awaiting arbitrator ruling.`);
+        alert(`Dispute recorded. Awaiting a ruling.`);
         await loadContractData();
         renderUserActivity();
       } catch (err) {
@@ -1121,9 +1106,9 @@
         : "Arbitrator ruling: seller wins. Dispute dismissed; buyer's bond forfeited to seller.";
       try {
         const tx = await contract.resolveDispute(purchaseId, buyerWins, details);
-        alert(`Ruling submitted: ${buyerWins ? "BUYER WINS" : "SELLER WINS"}\nTx: https://sepolia.etherscan.io/tx/${tx.hash}`);
+        alert(`Ruling submitted (${buyerWins ? "buyer wins" : "seller wins"}). Tx: https://sepolia.etherscan.io/tx/${tx.hash}`);
         await tx.wait();
-        alert(`Dispute resolved on-chain.`);
+        alert(`Dispute resolved.`);
         await loadContractData();
         renderUserActivity();
       } catch (err) {
@@ -1195,7 +1180,7 @@
               intelDisplay = `<div style="background: #161b22; border: 1px solid var(--border); padding: 8px; border-radius: 4px; margin: 6px 0; font-size: 12px; color: var(--text-bright);">${p.revealedContent}</div>`;
               actionBtn = `
                 <button class="btn btn-sm btn-primary" onclick="executeConfirmReceipt(${p.purchaseId})">Confirm Receipt & Release Escrow</button>
-                <button class="btn btn-sm" style="border-color: var(--danger); color: var(--danger);" onclick="executeDispute(${p.purchaseId})">⚠ Challenge</button>
+                <button class="btn btn-sm" style="border-color: var(--danger); color: var(--danger);" onclick="executeDispute(${p.purchaseId})">Challenge</button>
               `;
             } else if (statusIdx === 2) {
               actionBtn = `<span class="tag tag-accent">Confirmed & Settled</span>`;
@@ -1236,7 +1221,7 @@
                 </div>
                 <div class="muted small" style="margin-bottom:8px;">${listing.teaser}</div>
                 <div class="muted small" style="margin-bottom:8px;">Buyer's reason: "${p.disputeReason}"</div>
-                <button class="btn btn-sm" style="border-color: var(--danger); color: var(--danger);" onclick="executeResolveDispute(${p.purchaseId})">🎲 Resolve (Random 50/50 Ruling)</button>
+                <button class="btn btn-sm" style="border-color: var(--danger); color: var(--danger);" onclick="executeResolveDispute(${p.purchaseId})">Resolve (Random Ruling)</button>
               </div>
             `;
           }
@@ -1328,13 +1313,13 @@
       const commitmentHash = ethers.keccak256(ethers.toUtf8Bytes(intel.plaintext));
 
       await addSimStep({
-        actor: "🧑‍💼 Seller Agent",
+        actor: "Seller Agent",
         badge: { label: "depositStake()" },
         title: "Stakes 0.01 ETH — required before they can list anything."
       });
 
       await addSimStep({
-        actor: "🧑‍💼 Seller Agent",
+        actor: "Seller Agent",
         badge: { label: "createListing()" },
         title: `Lists <strong>"${intel.teaser}"</strong> for ${intel.priceEth} ETH.`,
         detail: "Only a hash of the intel goes on-chain — not the content itself.",
@@ -1342,24 +1327,24 @@
       });
 
       await addSimStep({
-        actor: "🏈 Buyer Agent (GM / Scouting Dept.)",
+        actor: "Buyer Agent (GM / Scouting Dept.)",
         badge: { label: "buyIntel()" },
         title: `Pays ${intel.priceEth} ETH — held in escrow, not sent to the seller yet.`
       });
 
       await addSimStep({
-        actor: "🧑‍💼 Seller Agent",
+        actor: "Seller Agent",
         badge: { label: "revealIntel()" },
         title: "Reveals the real content on-chain.",
         extraHtml: `
           <div class="sim-payload">${intel.plaintext}</div>
-          <div class="small" style="color: var(--success); margin-top: 6px;">✅ Matches the hash from step 2.</div>
+          <div class="small" style="color: var(--success); margin-top: 6px;">Matches the hash from step 2.</div>
         `
       });
 
       if (scenario === "dispute") {
         await addSimStep({
-          actor: "🏈 Buyer Agent (GM / Scouting Dept.)",
+          actor: "Buyer Agent (GM / Scouting Dept.)",
           badge: { label: "disputePurchase()", cls: "tag-danger" },
           title: "Disputes it, posting a 0.001 ETH bond.",
           detail: `Reason: "${intel.disputeReason}"`
@@ -1372,7 +1357,7 @@
         const buyerWins = Math.random() < 0.5;
 
         await addSimStep({
-          actor: "⚖️ Arbitrator",
+          actor: "Arbitrator",
           badge: { label: "resolveDispute()", cls: "tag-danger" },
           title: buyerWins ? "Rules for the buyer." : "Rules for the seller — dispute dismissed.",
           detail: buyerWins
@@ -1382,24 +1367,24 @@
         });
 
         document.getElementById("simTimeline").insertAdjacentHTML("beforeend", buyerWins ? `
-          <div class="sim-summary dispute">
-            <strong>Dispute upheld.</strong> Buyer gets everything back plus a stake penalty. Seller's reputation takes a hit.
+          <div class="sim-summary">
+            <strong>Dispute upheld.</strong> Buyer refunded, seller's stake slashed.
           </div>
         ` : `
           <div class="sim-summary">
-            <strong>Dispute dismissed.</strong> Seller gets paid in full plus the buyer's bond. Buyer's out the bond for a call that didn't go their way.
+            <strong>Dispute dismissed.</strong> Seller paid in full, buyer forfeits the bond.
           </div>
         `);
       } else {
         await addSimStep({
-          actor: "🏈 Buyer Agent (GM / Scouting Dept.)",
+          actor: "Buyer Agent (GM / Scouting Dept.)",
           badge: { label: "confirmReceipt()", cls: "tag-accent" },
           title: "Confirms receipt — escrow is released to the seller."
         });
 
         document.getElementById("simTimeline").insertAdjacentHTML("beforeend", `
           <div class="sim-summary">
-            <strong>Sale complete.</strong> Seller gets paid, reputation improves, buyer got exactly what was promised.
+            <strong>Sale complete.</strong> Seller paid, reputation improved.
           </div>
         `);
       }

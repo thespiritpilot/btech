@@ -69,10 +69,8 @@
     }
     .btn:hover { border-color: var(--text-muted); }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-accept { background: #1f6f2b; border-color: var(--success); color: #fff; }
-    .btn-accept:hover { background: #238636; }
-    .btn-deny { background: #6f1f1f; border-color: var(--danger); color: #fff; }
-    .btn-deny:hover { background: #8a2727; }
+    .btn-accept { border-color: var(--success); color: var(--success); }
+    .btn-deny { border-color: var(--danger); color: var(--danger); }
     .panel {
       border: 1px solid var(--border);
       background: var(--surface);
@@ -80,7 +78,6 @@
       padding: 16px;
       margin-bottom: 20px;
     }
-    .panel.session { border-color: var(--accent); }
     input[type="password"], input[type="text"] {
       width: 100%;
       background: #0d1117;
@@ -133,39 +130,33 @@
   <div class="container">
     <header>
       <div>
-        <h1 class="brand-title">⚖️ Arbitrator Committee</h1>
-        <div class="brand-subtitle">Real on-chain voting on active ScoutMarket disputes</div>
+        <h1 class="brand-title">Arbitrator Committee</h1>
+        <div class="brand-subtitle">On-chain voting on active ScoutMarket disputes</div>
       </div>
-      <a href="index.html">← Back to ScoutMarket</a>
+      <a href="index.html">Back to ScoutMarket</a>
     </header>
 
     <div class="panel small muted">
-      Disputes here are resolved by a fixed 10-address juror committee registered at deployment —
-      not a single trusted arbitrator. Every "Accept" / "Deny" click below submits a real
-      <code>castVote()</code> transaction from that juror's own address. Once 3 jurors accept a
-      challenge, the buyer is refunded and the seller's stake is slashed automatically. If accept
-      votes can no longer mathematically reach 3, it resolves for the seller instead.
-      <br><br>
-      <strong>This is a UI prototype of committee deliberation, not a decentralized jury</strong> —
-      all 10 juror keys were generated and are held by one operator for this demo. A production
-      version needs open staking + random juror selection (e.g. Kleros), not a fixed address list.
+      10 registered jurors vote on each dispute via <code>castVote()</code>. 3 accept votes refunds
+      the buyer and slashes the seller's stake; if accept can no longer reach 3, it resolves for the
+      seller. All 10 keys are held by one operator for this demo — a UI prototype of the mechanism,
+      not a decentralized jury.
     </div>
 
-    <div class="panel session">
+    <div class="panel">
       <div class="small muted" style="margin-bottom: 8px;">
-        Paste a juror's private key to vote as them. Nothing here is saved, sent anywhere, or stored —
-        it lives only in this tab's memory until you close or reload the page.
+        Paste a juror's private key to vote as them. Not stored.
       </div>
       <input id="jurorKeyInput" type="password" placeholder="0x... juror private key" />
       <div style="display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap;">
         <button class="btn" onclick="loadJurorKey()">Load Key</button>
-        <span id="jurorStatus" class="small muted">No juror loaded — voting buttons are disabled.</span>
+        <span id="jurorStatus" class="small muted">No juror loaded.</span>
       </div>
     </div>
 
     <div class="panel" style="margin-bottom: 12px; padding: 10px 16px;">
       <span class="small muted">Contract:</span>
-      <a id="contractLink" class="mono small" target="_blank">…</a>
+      <a id="contractLink" class="mono small" target="_blank"></a>
     </div>
 
     <h2 class="small" style="text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted); margin-bottom:10px;">
@@ -207,7 +198,7 @@
 
     async function init() {
       document.getElementById("contractLink").href = `https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS}#code`;
-      document.getElementById("contractLink").innerText = `${CONTRACT_ADDRESS} ↗`;
+      document.getElementById("contractLink").innerText = CONTRACT_ADDRESS;
 
       provider = new ethers.JsonRpcProvider(RPC_URL);
       readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
@@ -218,7 +209,7 @@
       const raw = document.getElementById("jurorKeyInput").value.trim();
       const statusEl = document.getElementById("jurorStatus");
       if (!raw) {
-        statusEl.innerText = "No juror loaded — voting buttons are disabled.";
+        statusEl.innerText = "No juror loaded.";
         statusEl.className = "small muted";
         jurorWallet = null;
         return;
@@ -230,9 +221,9 @@
         jurorWallet = wallet;
         document.getElementById("jurorKeyInput").value = "";
         statusEl.innerText = recognized
-          ? `Voting as ${wallet.address.slice(0,8)}...${wallet.address.slice(-6)} — recognized committee juror ✅`
-          : `Loaded ${wallet.address.slice(0,8)}...${wallet.address.slice(-6)} — NOT a registered juror, votes will revert ⚠️`;
-        statusEl.className = recognized ? "small" : "small";
+          ? `Voting as ${wallet.address.slice(0,8)}...${wallet.address.slice(-6)} — registered juror.`
+          : `Loaded ${wallet.address.slice(0,8)}...${wallet.address.slice(-6)} — not a registered juror, votes will revert.`;
+        statusEl.className = "small";
         statusEl.style.color = recognized ? "var(--success)" : "var(--danger)";
         await refresh();
       } catch (e) {
@@ -250,9 +241,9 @@
       try {
         const contractAsJuror = new ethers.Contract(CONTRACT_ADDRESS, ABI, jurorWallet);
         const tx = await contractAsJuror.castVote(purchaseId, acceptChallenge);
-        alert(`Vote submitted! Tx: https://sepolia.etherscan.io/tx/${tx.hash}`);
+        alert(`Vote submitted. Tx: https://sepolia.etherscan.io/tx/${tx.hash}`);
         await tx.wait();
-        alert(`Vote confirmed on-chain.`);
+        alert(`Vote confirmed.`);
         await refresh();
       } catch (err) {
         alert("Vote failed: " + (err.reason || err.message));
@@ -301,8 +292,8 @@
                   <div class="vote-bar-deny" style="width:${denyPct}%"></div>
                 </div>
                 <div class="vote-actions">
-                  <button class="btn btn-accept" ${disabled ? "disabled" : ""} onclick="castVote(${p.purchaseId}, true)">✅ Accept Challenge</button>
-                  <button class="btn btn-deny" ${disabled ? "disabled" : ""} onclick="castVote(${p.purchaseId}, false)">❌ Deny Challenge</button>
+                  <button class="btn btn-accept" ${disabled ? "disabled" : ""} onclick="castVote(${p.purchaseId}, true)">Accept</button>
+                  <button class="btn btn-deny" ${disabled ? "disabled" : ""} onclick="castVote(${p.purchaseId}, false)">Deny</button>
                   ${disabledReason ? `<span class="small muted">${disabledReason}</span>` : ""}
                 </div>
               </div>
