@@ -576,8 +576,8 @@
     <div class="contract-banner">
       <div>
         <span class="muted">Contract:</span>
-        <a id="contractLink" href="https://sepolia.etherscan.io/address/0x2806E4C4c76c25C59b5530E481A2B5cDAA329C32#code" target="_blank" class="mono" style="margin-left: 4px;">
-          0x2806E4C4c76c25C59b5530E481A2B5cDAA329C32 ↗
+        <a id="contractLink" href="https://sepolia.etherscan.io/address/0xb69A7Bbbc5d0128BFbFE3D92c5f275B7DAeC5a8B#code" target="_blank" class="mono" style="margin-left: 4px;">
+          0xb69A7Bbbc5d0128BFbFE3D92c5f275B7DAeC5a8B ↗
         </a>
       </div>
       <div class="muted">
@@ -670,10 +670,25 @@
           </div>
         </div>
 
-        <div id="buyerPurchasesSection">
+        <div id="buyerPurchasesSection" style="margin-bottom: 16px;">
           <div class="form-label" style="margin-bottom: 8px;">My Purchases & Escrow Confirmations</div>
           <div id="buyerPurchasesList">
             <div style="color: var(--text-muted); font-size: 12px;">Connect wallet to inspect purchased intelligence reports.</div>
+          </div>
+        </div>
+
+        <div class="alert-box" style="display: block; border-color: var(--accent);">
+          Disputes here are resolved by a real 10-person juror committee, not a single arbitrator —
+          track live votes and cast your own at <a href="arbitrator.html" target="_blank">arbitrator.html ↗</a>.
+        </div>
+
+        <!-- Only visible when the connected wallet IS the deployed contract's
+             single arbitrator address — resolveDispute() reverts on-chain for
+             anyone else. Kept as a manual override alongside the committee. -->
+        <div id="arbitratorDisputesSection" style="display:none; margin-top:16px;">
+          <div class="form-label" style="margin-bottom: 8px;">Emergency Override — Single Arbitrator</div>
+          <div id="arbitratorDisputesList">
+            <div style="color: var(--text-muted); font-size: 12px;">No disputes awaiting ruling.</div>
           </div>
         </div>
       </div>
@@ -780,7 +795,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.11.1/ethers.umd.min.js"></script>
   <script>
-    const CONTRACT_ADDRESS = "0x2806E4C4c76c25C59b5530E481A2B5cDAA329C32";
+    const CONTRACT_ADDRESS = "0xb69A7Bbbc5d0128BFbFE3D92c5f275B7DAeC5a8B";
     const RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com";
 
     // Full ABI — read functions power the live feed/tracker for every visitor;
@@ -797,7 +812,19 @@
       "function buyIntel(uint256 listingId) external payable returns (uint256)",
       "function revealIntel(uint256 purchaseId, string calldata plaintextIntel) external",
       "function confirmReceipt(uint256 purchaseId) external",
-      "function claimTimeoutRefund(uint256 purchaseId) external"
+      "function claimTimeoutRefund(uint256 purchaseId) external",
+      "function disputePurchase(uint256 purchaseId, string calldata reason) external payable",
+      "function resolveDispute(uint256 purchaseId, bool buyerWins, string calldata details) external",
+      "function arbitrator() external view returns (address)",
+      "function disputeBond() external view returns (uint256)",
+      "function castVote(uint256 purchaseId, bool acceptChallenge) external",
+      "function acceptVotes(uint256) external view returns (uint256)",
+      "function denyVotes(uint256) external view returns (uint256)",
+      "function hasVoted(uint256, address) external view returns (bool)",
+      "function isJuror(address) external view returns (bool)",
+      "function jurorCount() external view returns (uint256)",
+      "function getJurors() external view returns (address[])",
+      "function JUROR_VOTE_THRESHOLD() external view returns (uint256)"
     ];
 
     const statusLabels = ["PendingReveal", "Revealed", "Confirmed", "Refunded", "Disputed"];
@@ -1057,16 +1084,77 @@
       }
     }
 
+    async function executeDispute(purchaseId) {
+      if (!signer) return connectWallet();
+      const reason = prompt(
+        "Reason for the dispute (stored on-chain, visible to the arbitrator):",
+        "Delivered content does not match what the teaser promised."
+      );
+      if (reason === null) return; // cancelled
+      try {
+        const bond = await contract.disputeBond();
+        const tx = await contract.disputePurchase(purchaseId, reason, { value: bond });
+        alert(`Dispute filed! Tx: https://sepolia.etherscan.io/tx/${tx.hash}\n${ethers.formatEther(bond)} ETH bond locked.`);
+        await tx.wait();
+        alert(`Dispute recorded on-chain — awaiting arbitrator ruling.`);
+        await loadContractData();
+        renderUserActivity();
+      } catch (err) {
+        alert("Dispute failed: " + (err.reason || err.message));
+      }
+    }
+
+    // Only the arbitrator address can actually submit this — the contract's
+    // onlyArbitrator modifier will revert the transaction for anyone else,
+    // which is real, honest on-chain access control, not a UI restriction.
+    // There's no real deliberation behind the ruling: this connects to
+    // Mistral or any other "AI arbitrator" for exactly nothing — it's a
+    // genuine client-side coin flip, submitted as a real transaction. That's
+    // deliberately the same honesty as the Run Simulation dispute outcome:
+    // an unaccountable single-address judgment call has no principled way
+    // to be computed, so a 50/50 is at least not pretending otherwise.
+    async function executeResolveDispute(purchaseId) {
+      if (!signer) return connectWallet();
+      const buyerWins = Math.random() < 0.5;
+      const details = buyerWins
+        ? "Arbitrator ruling: buyer wins. Seller stake slashed 0.005 ETH; buyer refunded escrow + bond + penalty."
+        : "Arbitrator ruling: seller wins. Dispute dismissed; buyer's bond forfeited to seller.";
+      try {
+        const tx = await contract.resolveDispute(purchaseId, buyerWins, details);
+        alert(`Ruling submitted: ${buyerWins ? "BUYER WINS" : "SELLER WINS"}\nTx: https://sepolia.etherscan.io/tx/${tx.hash}`);
+        await tx.wait();
+        alert(`Dispute resolved on-chain.`);
+        await loadContractData();
+        renderUserActivity();
+      } catch (err) {
+        alert("Resolution failed: " + (err.reason || err.message));
+      }
+    }
+
     async function renderUserActivity() {
       if (!userAddress || !contract) return;
       try {
         const purchaseCount = await contract.purchaseCounter();
         const sellerRevealList = document.getElementById("sellerRevealList");
         const buyerPurchasesList = document.getElementById("buyerPurchasesList");
+        const arbitratorDisputesList = document.getElementById("arbitratorDisputesList");
+        const arbitratorSection = document.getElementById("arbitratorDisputesSection");
 
         let sellerPendingHtml = "";
         let buyerPurchasesHtml = "";
+        let arbitratorPendingHtml = "";
         const nowSec = Math.floor(Date.now() / 1000);
+
+        // Only shows/does anything for whichever address the contract was
+        // actually deployed with as arbitrator — resolveDispute() will
+        // revert on-chain for anyone else, this just avoids showing a
+        // button that would obviously fail.
+        let isArbitrator = false;
+        try {
+          const arbitratorAddress = await contract.arbitrator();
+          isArbitrator = arbitratorAddress.toLowerCase() === userAddress.toLowerCase();
+        } catch (e) {}
+        if (arbitratorSection) arbitratorSection.style.display = isArbitrator ? "block" : "none";
 
         for (let j = Number(purchaseCount); j >= 1; j--) {
           const p = await contract.purchases(j);
@@ -1105,14 +1193,22 @@
                 : `<span class="tag">Awaiting Seller Reveal</span>`;
             } else if (statusIdx === 1) {
               intelDisplay = `<div style="background: #161b22; border: 1px solid var(--border); padding: 8px; border-radius: 4px; margin: 6px 0; font-size: 12px; color: var(--text-bright);">${p.revealedContent}</div>`;
-              actionBtn = `<button class="btn btn-sm btn-primary" onclick="executeConfirmReceipt(${p.purchaseId})">Confirm Receipt & Release Escrow</button>`;
+              actionBtn = `
+                <button class="btn btn-sm btn-primary" onclick="executeConfirmReceipt(${p.purchaseId})">Confirm Receipt & Release Escrow</button>
+                <button class="btn btn-sm" style="border-color: var(--danger); color: var(--danger);" onclick="executeDispute(${p.purchaseId})">⚠ Challenge</button>
+              `;
             } else if (statusIdx === 2) {
               actionBtn = `<span class="tag tag-accent">Confirmed & Settled</span>`;
               intelDisplay = `<div class="muted" style="font-size: 11px;">Intel: ${p.revealedContent}</div>`;
             } else if (statusIdx === 3) {
               actionBtn = `<span class="tag">Refunded</span>`;
             } else if (statusIdx === 4) {
-              actionBtn = `<span class="tag tag-danger">Disputed — Awaiting Arbitrator</span>`;
+              const [accepts, denies, threshold] = await Promise.all([
+                contract.acceptVotes(p.purchaseId),
+                contract.denyVotes(p.purchaseId),
+                contract.JUROR_VOTE_THRESHOLD()
+              ]);
+              actionBtn = `<span class="tag tag-danger">Pending — Committee Vote: ${accepts} accept / ${denies} deny (needs ${threshold} to win)</span>`;
             }
 
             buyerPurchasesHtml += `
@@ -1127,10 +1223,30 @@
               </div>
             `;
           }
+
+          // Disputes awaiting a ruling — only useful to render if this
+          // connected wallet is actually the arbitrator (resolveDispute
+          // reverts on-chain otherwise, so there's nothing to click for anyone else).
+          if (isArbitrator && Number(p.status) === 4) {
+            arbitratorPendingHtml += `
+              <div class="activity-card">
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                  <strong>Purchase #${p.purchaseId} — Listing #${p.listingId}</strong>
+                  <span class="tag tag-danger">Disputed</span>
+                </div>
+                <div class="muted small" style="margin-bottom:8px;">${listing.teaser}</div>
+                <div class="muted small" style="margin-bottom:8px;">Buyer's reason: "${p.disputeReason}"</div>
+                <button class="btn btn-sm" style="border-color: var(--danger); color: var(--danger);" onclick="executeResolveDispute(${p.purchaseId})">🎲 Resolve (Random 50/50 Ruling)</button>
+              </div>
+            `;
+          }
         }
 
         sellerRevealList.innerHTML = sellerPendingHtml || '<div style="color: var(--text-muted); font-size: 12px;">No pending reveals for connected seller account.</div>';
         buyerPurchasesList.innerHTML = buyerPurchasesHtml || '<div style="color: var(--text-muted); font-size: 12px;">No purchases recorded for connected buyer account.</div>';
+        if (arbitratorDisputesList) {
+          arbitratorDisputesList.innerHTML = arbitratorPendingHtml || '<div style="color: var(--text-muted); font-size: 12px;">No disputes awaiting ruling.</div>';
+        }
 
       } catch (e) {
         console.error("Activity load error:", e);

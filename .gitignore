@@ -7,6 +7,9 @@
 # Seller agent's local plaintext keystore (confidential intel, never commit)
 agents/.keystore.json
 
+# Generated juror committee private keys — testnet-only but never commit
+agents/.jurors.json
+
 # Node dependencies
 node_modules/
 

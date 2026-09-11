@@ -41,7 +41,7 @@ async function main() {
   if (!scoutMarket) {
     console.log("\n>>> Deploying fresh ScoutMarket Smart Contract...");
     const ScoutMarketFactory = await ethers.getContractFactory("ScoutMarket", deployer);
-    scoutMarket = await ScoutMarketFactory.deploy(arbitratorAccount ? arbitratorAccount.address : deployer.address);
+    scoutMarket = await ScoutMarketFactory.deploy(arbitratorAccount ? arbitratorAccount.address : deployer.address, []);
     await scoutMarket.waitForDeployment();
     contractAddress = await scoutMarket.getAddress();
     console.log(`[Success] Deployed to: ${contractAddress}`);

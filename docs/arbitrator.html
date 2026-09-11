@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScoutMarket — Arbitrator Committee</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --text-bright: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --success: #3fb950;
+      --danger: #f87171;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 24px 16px;
+    }
+    .container { max-width: 760px; margin: 0 auto; }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand-title { font-size: 18px; font-weight: 700; color: var(--text-bright); }
+    .brand-subtitle { color: var(--text-muted); font-size: 13px; margin-top: 3px; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .mono { font-family: var(--font-mono); }
+    .muted { color: var(--text-muted); }
+    .small { font-size: 12px; }
+    .tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 2px 7px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-muted);
+    }
+    .tag-danger { border-color: var(--danger); color: var(--danger); }
+    .tag-success { border-color: var(--success); color: var(--success); }
+    .btn {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text-bright);
+      cursor: pointer;
+    }
+    .btn:hover { border-color: var(--text-muted); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-accept { background: #1f6f2b; border-color: var(--success); color: #fff; }
+    .btn-accept:hover { background: #238636; }
+    .btn-deny { background: #6f1f1f; border-color: var(--danger); color: #fff; }
+    .btn-deny:hover { background: #8a2727; }
+    .panel {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .panel.session { border-color: var(--accent); }
+    input[type="password"], input[type="text"] {
+      width: 100%;
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      color: var(--text-bright);
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    input:focus { outline: none; border-color: var(--accent); }
+    .dispute-card {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: 6px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .dispute-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .payload {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      padding: 8px;
+      border-radius: 4px;
+      margin: 6px 0;
+      font-size: 12px;
+    }
+    .vote-bar {
+      display: flex;
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 8px 0;
+      background: #0d1117;
+      border: 1px solid var(--border);
+    }
+    .vote-bar-accept { background: var(--success); }
+    .vote-bar-deny { background: var(--danger); }
+    .vote-actions { display: flex; gap: 8px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1 class="brand-title">⚖️ Arbitrator Committee</h1>
+        <div class="brand-subtitle">Real on-chain voting on active ScoutMarket disputes</div>
+      </div>
+      <a href="index.html">← Back to ScoutMarket</a>
+    </header>
+
+    <div class="panel small muted">
+      Disputes here are resolved by a fixed 10-address juror committee registered at deployment —
+      not a single trusted arbitrator. Every "Accept" / "Deny" click below submits a real
+      <code>castVote()</code> transaction from that juror's own address. Once 3 jurors accept a
+      challenge, the buyer is refunded and the seller's stake is slashed automatically. If accept
+      votes can no longer mathematically reach 3, it resolves for the seller instead.
+      <br><br>
+      <strong>This is a UI prototype of committee deliberation, not a decentralized jury</strong> —
+      all 10 juror keys were generated and are held by one operator for this demo. A production
+      version needs open staking + random juror selection (e.g. Kleros), not a fixed address list.
+    </div>
+
+    <div class="panel session">
+      <div class="small muted" style="margin-bottom: 8px;">
+        Paste a juror's private key to vote as them. Nothing here is saved, sent anywhere, or stored —
+        it lives only in this tab's memory until you close or reload the page.
+      </div>
+      <input id="jurorKeyInput" type="password" placeholder="0x... juror private key" />
+      <div style="display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap;">
+        <button class="btn" onclick="loadJurorKey()">Load Key</button>
+        <span id="jurorStatus" class="small muted">No juror loaded — voting buttons are disabled.</span>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom: 12px; padding: 10px 16px;">
+      <span class="small muted">Contract:</span>
+      <a id="contractLink" class="mono small" target="_blank">…</a>
+    </div>
+
+    <h2 class="small" style="text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted); margin-bottom:10px;">
+      Active Disputes
+    </h2>
+    <div id="disputesList">
+      <div class="muted small">Loading disputes from Sepolia…</div>
+    </div>
+
+    <h2 class="small" style="text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted); margin:20px 0 10px;">
+      Recently Resolved
+    </h2>
+    <div id="resolvedList">
+      <div class="muted small">Loading…</div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.11.1/ethers.umd.min.js"></script>
+  <script>
+    const CONTRACT_ADDRESS = "0xb69A7Bbbc5d0128BFbFE3D92c5f275B7DAeC5a8B";
+    const RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com";
+
+    const ABI = [
+      "function purchaseCounter() external view returns (uint256)",
+      "function listings(uint256) external view returns (uint256 listingId, address seller, bytes32 contentCommitment, string teaser, uint256 price, uint256 expiryTimestamp, uint8 category, uint256 claimResolutionTimestamp, bool active, uint256 createdAt)",
+      "function purchases(uint256) external view returns (uint256 purchaseId, uint256 listingId, address buyer, uint256 amountPaid, uint256 revealDeadline, uint8 status, string revealedContent, uint256 disputedAt, string disputeReason)",
+      "function acceptVotes(uint256) external view returns (uint256)",
+      "function denyVotes(uint256) external view returns (uint256)",
+      "function hasVoted(uint256, address) external view returns (bool)",
+      "function isJuror(address) external view returns (bool)",
+      "function jurorCount() external view returns (uint256)",
+      "function JUROR_VOTE_THRESHOLD() external view returns (uint256)",
+      "function castVote(uint256 purchaseId, bool acceptChallenge) external"
+    ];
+
+    const statusLabels = ["PendingReveal", "Revealed", "Confirmed", "Refunded", "Disputed"];
+    let provider, readContract;
+    let jurorWallet = null; // ephemeral, in-memory only — never persisted
+
+    async function init() {
+      document.getElementById("contractLink").href = `https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS}#code`;
+      document.getElementById("contractLink").innerText = `${CONTRACT_ADDRESS} ↗`;
+
+      provider = new ethers.JsonRpcProvider(RPC_URL);
+      readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+      await refresh();
+    }
+
+    async function loadJurorKey() {
+      const raw = document.getElementById("jurorKeyInput").value.trim();
+      const statusEl = document.getElementById("jurorStatus");
+      if (!raw) {
+        statusEl.innerText = "No juror loaded — voting buttons are disabled.";
+        statusEl.className = "small muted";
+        jurorWallet = null;
+        return;
+      }
+      try {
+        const key = raw.startsWith("0x") ? raw : `0x${raw}`;
+        const wallet = new ethers.Wallet(key, provider);
+        const recognized = await readContract.isJuror(wallet.address);
+        jurorWallet = wallet;
+        document.getElementById("jurorKeyInput").value = "";
+        statusEl.innerText = recognized
+          ? `Voting as ${wallet.address.slice(0,8)}...${wallet.address.slice(-6)} — recognized committee juror ✅`
+          : `Loaded ${wallet.address.slice(0,8)}...${wallet.address.slice(-6)} — NOT a registered juror, votes will revert ⚠️`;
+        statusEl.className = recognized ? "small" : "small";
+        statusEl.style.color = recognized ? "var(--success)" : "var(--danger)";
+        await refresh();
+      } catch (e) {
+        statusEl.innerText = "Invalid private key.";
+        statusEl.style.color = "var(--danger)";
+        jurorWallet = null;
+      }
+    }
+
+    async function castVote(purchaseId, acceptChallenge) {
+      if (!jurorWallet) {
+        alert("Load a juror's private key first.");
+        return;
+      }
+      try {
+        const contractAsJuror = new ethers.Contract(CONTRACT_ADDRESS, ABI, jurorWallet);
+        const tx = await contractAsJuror.castVote(purchaseId, acceptChallenge);
+        alert(`Vote submitted! Tx: https://sepolia.etherscan.io/tx/${tx.hash}`);
+        await tx.wait();
+        alert(`Vote confirmed on-chain.`);
+        await refresh();
+      } catch (err) {
+        alert("Vote failed: " + (err.reason || err.message));
+      }
+    }
+
+    async function refresh() {
+      try {
+        const purchaseCount = Number(await readContract.purchaseCounter());
+        const threshold = Number(await readContract.JUROR_VOTE_THRESHOLD());
+        const jurorTotal = Number(await readContract.jurorCount());
+
+        const disputesList = document.getElementById("disputesList");
+        const resolvedList = document.getElementById("resolvedList");
+        let disputesHtml = "";
+        let resolvedHtml = "";
+
+        for (let id = purchaseCount; id >= 1; id--) {
+          const p = await readContract.purchases(id);
+          const statusIdx = Number(p.status);
+          const listing = await readContract.listings(p.listingId);
+
+          if (statusIdx === 4) { // Disputed — still open
+            const accepts = Number(await readContract.acceptVotes(id));
+            const denies = Number(await readContract.denyVotes(id));
+            const votedAlready = jurorWallet ? await readContract.hasVoted(id, jurorWallet.address) : false;
+            const totalVotes = accepts + denies || 1;
+            const acceptPct = (accepts / totalVotes) * 100;
+            const denyPct = (denies / totalVotes) * 100;
+
+            const disabled = !jurorWallet || votedAlready;
+            const disabledReason = !jurorWallet ? "Load a juror key above" : (votedAlready ? "This juror already voted" : "");
+
+            disputesHtml += `
+              <div class="dispute-card">
+                <div class="dispute-top">
+                  <strong>Purchase #${p.purchaseId} — Listing #${p.listingId}</strong>
+                  <span class="tag tag-danger">Disputed</span>
+                </div>
+                <div class="muted small">${listing.teaser}</div>
+                <div class="payload"><strong>Delivered:</strong> ${p.revealedContent || "(not yet revealed)"}</div>
+                <div class="payload"><strong>Dispute reason:</strong> "${p.disputeReason}"</div>
+                <div class="small muted">${accepts} accept / ${denies} deny — needs ${threshold} of ${jurorTotal} jurors to accept</div>
+                <div class="vote-bar">
+                  <div class="vote-bar-accept" style="width:${acceptPct}%"></div>
+                  <div class="vote-bar-deny" style="width:${denyPct}%"></div>
+                </div>
+                <div class="vote-actions">
+                  <button class="btn btn-accept" ${disabled ? "disabled" : ""} onclick="castVote(${p.purchaseId}, true)">✅ Accept Challenge</button>
+                  <button class="btn btn-deny" ${disabled ? "disabled" : ""} onclick="castVote(${p.purchaseId}, false)">❌ Deny Challenge</button>
+                  ${disabledReason ? `<span class="small muted">${disabledReason}</span>` : ""}
+                </div>
+              </div>
+            `;
+          } else if (statusIdx === 2 || statusIdx === 3) {
+            // Resolved via dispute (Confirmed = seller won, Refunded = buyer won) —
+            // only show ones that actually went through a dispute (disputedAt > 0)
+            if (Number(p.disputedAt) > 0) {
+              const accepts = Number(await readContract.acceptVotes(id));
+              const denies = Number(await readContract.denyVotes(id));
+              const buyerWon = statusIdx === 3;
+              resolvedHtml += `
+                <div class="dispute-card">
+                  <div class="dispute-top">
+                    <strong>Purchase #${p.purchaseId} — Listing #${p.listingId}</strong>
+                    <span class="tag ${buyerWon ? 'tag-danger' : 'tag-success'}">${buyerWon ? "Buyer Won" : "Seller Won"}</span>
+                  </div>
+                  <div class="muted small">${listing.teaser}</div>
+                  <div class="small muted">Final tally: ${accepts} accept / ${denies} deny</div>
+                </div>
+              `;
+            }
+          }
+        }
+
+        disputesList.innerHTML = disputesHtml || '<div class="muted small">No active disputes right now.</div>';
+        resolvedList.innerHTML = resolvedHtml || '<div class="muted small">No disputes resolved yet.</div>';
+      } catch (err) {
+        console.error("Refresh error:", err);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>

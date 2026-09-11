@@ -16,7 +16,7 @@ describe("ScoutMarket Unit Tests", function () {
     [owner, seller, buyer, arbitrator, otherAccount] = await ethers.getSigners();
 
     ScoutMarket = await ethers.getContractFactory("ScoutMarket");
-    scoutMarket = await ScoutMarket.deploy(arbitrator.address);
+    scoutMarket = await ScoutMarket.deploy(arbitrator.address, []);
     await scoutMarket.waitForDeployment();
   });
 
@@ -157,6 +157,104 @@ describe("ScoutMarket Unit Tests", function () {
 
       const rep = await scoutMarket.getSellerReputation(seller.address);
       expect(rep.disputesLost).to.equal(1);
+    });
+  });
+
+  describe("Committee Voting (castVote)", function () {
+    let scoutMarketWithJurors;
+    let jurors;
+    let listingId;
+
+    beforeEach(async function () {
+      const signers = await ethers.getSigners();
+      // 10 dedicated juror signers, distinct from owner/seller/buyer/arbitrator/otherAccount
+      jurors = signers.slice(5, 15);
+      expect(jurors.length).to.equal(10);
+
+      scoutMarketWithJurors = await ScoutMarket.deploy(
+        arbitrator.address,
+        jurors.map(j => j.address)
+      );
+      await scoutMarketWithJurors.waitForDeployment();
+
+      await scoutMarketWithJurors.connect(seller).depositStake({ value: minSellerStake });
+      const now = Math.floor(Date.now() / 1000);
+      await scoutMarketWithJurors.connect(seller).createListing(
+        intelHash,
+        "[Health Flag] Marcus Vance — Georgia",
+        intelPrice,
+        now + 3600,
+        0,
+        now + 86400
+      );
+      listingId = 1;
+      await scoutMarketWithJurors.connect(buyer).buyIntel(listingId, { value: intelPrice });
+      await scoutMarketWithJurors.connect(seller).revealIntel(1, plaintextIntel);
+      await scoutMarketWithJurors.connect(buyer).disputePurchase(1, "Claim material details missing", { value: disputeBond });
+    });
+
+    it("Registers exactly the deployed jurors and exposes them via getJurors()", async function () {
+      expect(await scoutMarketWithJurors.jurorCount()).to.equal(10);
+      const onChainJurors = await scoutMarketWithJurors.getJurors();
+      expect(onChainJurors).to.deep.equal(jurors.map(j => j.address));
+      for (const j of jurors) {
+        expect(await scoutMarketWithJurors.isJuror(j.address)).to.equal(true);
+      }
+      expect(await scoutMarketWithJurors.isJuror(otherAccount.address)).to.equal(false);
+    });
+
+    it("Rejects votes from non-jurors", async function () {
+      await expect(
+        scoutMarketWithJurors.connect(otherAccount).castVote(1, true)
+      ).to.be.revertedWith("Only registered committee jurors can vote");
+    });
+
+    it("Rejects a juror voting twice on the same dispute", async function () {
+      await scoutMarketWithJurors.connect(jurors[0]).castVote(1, false);
+      await expect(
+        scoutMarketWithJurors.connect(jurors[0]).castVote(1, false)
+      ).to.be.revertedWith("Juror has already voted on this dispute");
+    });
+
+    it("Resolves in the buyer's favor the instant the 3rd accept vote lands, slashing the seller", async function () {
+      await scoutMarketWithJurors.connect(jurors[0]).castVote(1, true);
+      await scoutMarketWithJurors.connect(jurors[1]).castVote(1, true);
+
+      let purchase = await scoutMarketWithJurors.purchases(1);
+      expect(purchase.status).to.equal(4); // still Disputed — only 2 accept votes so far
+
+      const initialBuyerBal = await ethers.provider.getBalance(buyer.address);
+      await expect(scoutMarketWithJurors.connect(jurors[2]).castVote(1, true))
+        .to.emit(scoutMarketWithJurors, "DisputeResolved")
+        .withArgs(1, true, "Committee ruling: accept-vote threshold reached, buyer wins.");
+
+      purchase = await scoutMarketWithJurors.purchases(1);
+      expect(purchase.status).to.equal(3); // Refunded
+
+      const finalBuyerBal = await ethers.provider.getBalance(buyer.address);
+      expect(finalBuyerBal).to.be.above(initialBuyerBal);
+
+      const rep = await scoutMarketWithJurors.getSellerReputation(seller.address);
+      expect(rep.disputesLost).to.equal(1);
+
+      // A 4th juror trying to vote on an already-settled dispute should revert
+      await expect(
+        scoutMarketWithJurors.connect(jurors[3]).castVote(1, true)
+      ).to.be.revertedWith("Purchase is not in disputed state");
+    });
+
+    it("Resolves in the seller's favor once accept votes can no longer reach the threshold", async function () {
+      // 10 jurors, threshold 3 — once 8 have voted deny, only 2 could ever vote
+      // accept, so it must resolve for the seller rather than deadlock.
+      for (let i = 0; i < 8; i++) {
+        await scoutMarketWithJurors.connect(jurors[i]).castVote(1, false);
+      }
+
+      const purchase = await scoutMarketWithJurors.purchases(1);
+      expect(purchase.status).to.equal(2); // Confirmed (seller wins)
+
+      const rep = await scoutMarketWithJurors.getSellerReputation(seller.address);
+      expect(rep.disputesWon).to.equal(1);
     });
   });
 });

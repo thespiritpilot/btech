@@ -16,14 +16,16 @@ async function main() {
   const deploymentInfo = JSON.parse(fs.readFileSync(deployPath, "utf8"));
   const contractAddress = deploymentInfo.contractAddress;
   const arbitratorAddress = deploymentInfo.arbitrator;
+  const jurorAddresses = deploymentInfo.jurors || [];
 
   console.log(`Verifying contract at: ${contractAddress}`);
   console.log(`Constructor Argument (Arbitrator): ${arbitratorAddress}`);
+  console.log(`Constructor Argument (Jurors): ${jurorAddresses.length} addresses`);
 
   try {
     await run("verify:verify", {
       address: contractAddress,
-      constructorArguments: [arbitratorAddress],
+      constructorArguments: [arbitratorAddress, jurorAddresses],
     });
     console.log("✅ Contract successfully verified on BaseScan!");
   } catch (error) {
