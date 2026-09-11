@@ -1,11 +1,569 @@
-<!-- Redirect to ui/ or docs/ if root is served -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta http-equiv="refresh" content="0; url=ui/index.html" />
-  <title>ScoutMarket</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScoutMarket — On-Chain Sports Scouting Intelligence</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --text-bright: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 32px 20px;
+    }
+
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-bright);
+      letter-spacing: -0.01em;
+    }
+
+    .brand-subtitle {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-top: 3px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 2px 7px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-muted);
+      background: transparent;
+    }
+
+    .btn {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text-bright);
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      border-color: var(--text-muted);
+      color: #fff;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+    }
+
+    /* Contract banner */
+    .contract-banner {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .metric-card {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: 6px;
+      padding: 12px 14px;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-bright);
+      font-family: var(--font-mono);
+    }
+
+    .metric-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* 2-Column Content */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 860px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-bright);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* Listing item */
+    .listing-item {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: 6px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .listing-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+      gap: 8px;
+    }
+
+    .listing-price {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-bright);
+    }
+
+    .listing-teaser {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-bright);
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    .listing-meta {
+      font-size: 12px;
+      border-top: 1px solid var(--border);
+      padding-top: 8px;
+      margin-top: 8px;
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 2px 0;
+      font-size: 12px;
+    }
+
+    .meta-key {
+      color: var(--text-muted);
+    }
+
+    /* Table */
+    .table-box {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+
+    th {
+      padding: 8px 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Mechanism specifications */
+    .spec-box {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: 6px;
+      padding: 14px;
+    }
+
+    .spec-list {
+      list-style: none;
+      font-size: 12px;
+    }
+
+    .spec-list li {
+      margin-bottom: 8px;
+      line-height: 1.45;
+      padding-left: 12px;
+      position: relative;
+    }
+
+    .spec-list li::before {
+      content: "—";
+      position: absolute;
+      left: 0;
+      color: var(--text-muted);
+    }
+
+    .spec-list li:last-child {
+      margin-bottom: 0;
+    }
+
+    .spec-list strong {
+      color: var(--text-bright);
+    }
+  </style>
 </head>
 <body>
-  <p>Redirecting to <a href="ui/index.html">ScoutMarket Dashboard</a>...</p>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div>
+        <h1 class="brand-title">ScoutMarket</h1>
+        <div class="brand-subtitle">Autonomous agent marketplace for unverifiable sports scouting intelligence</div>
+      </div>
+      <div class="header-actions">
+        <span class="tag">Sepolia Testnet</span>
+        <span class="tag">x402 Protocol</span>
+        <button id="btnConnect" class="btn" onclick="connectWallet()">Connect Wallet</button>
+      </div>
+    </header>
+
+    <!-- Contract Address Banner -->
+    <div class="contract-banner">
+      <div>
+        <span style="color: var(--text-muted);">Contract:</span>
+        <a id="contractLink" href="https://sepolia.etherscan.io/address/0x2806E4C4c76c25C59b5530E481A2B5cDAA329C32#code" target="_blank" class="mono" style="margin-left: 4px;">
+          0x2806E4C4c76c25C59b5530E481A2B5cDAA329C32 ↗
+        </a>
+      </div>
+      <div style="color: var(--text-muted);">
+        Status: <span id="rpcStatus" class="mono" style="color: var(--text-bright);">RPC Synced</span>
+      </div>
+    </div>
+
+    <!-- Metrics Bar -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Seller Stake</div>
+        <div class="metric-value" id="stat-stake">0.010 ETH</div>
+        <div class="metric-sub">Skin-in-the-game deposit</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Total Listings</div>
+        <div class="metric-value" id="stat-listings">3</div>
+        <div class="metric-sub">Active scouting claims</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Escrow Volume</div>
+        <div class="metric-value" id="stat-volume">0.012 ETH</div>
+        <div class="metric-sub">Settled purchases</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Seller Reputation</div>
+        <div class="metric-value" id="stat-rep">4,400 <span style="font-size: 11px; font-weight: normal; color: var(--text-muted);">/ 10,000</span></div>
+        <div class="metric-sub">Dispute & accuracy weighted</div>
+      </div>
+    </div>
+
+    <!-- Main Content Layout -->
+    <div class="main-grid">
+      <!-- Left Column: Intelligence Listings Feed -->
+      <div>
+        <div class="section-header">
+          <span class="section-title">Live Scouting Intelligence Feed</span>
+          <span class="tag" id="feedCounter">3 Listings</span>
+        </div>
+
+        <div id="listingsContainer">
+          <div style="padding: 24px; text-align: center; color: var(--text-muted);">
+            Connecting to Ethereum Sepolia RPC...
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Escrow Table & Mechanism Specs -->
+      <div>
+        <!-- Escrow Tracker Table -->
+        <div class="section-header">
+          <span class="section-title">On-Chain Escrow Tracker</span>
+          <span class="tag" id="escrowCounter">3 Purchases</span>
+        </div>
+        <div class="table-box">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Buyer Agent</th>
+                <th>Escrow</th>
+                <th>State</th>
+              </tr>
+            </thead>
+            <tbody id="escrowTableBody">
+              <tr>
+                <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 16px;">Loading escrow logs...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mechanism Specifications -->
+        <div class="section-header" style="margin-top: 24px;">
+          <span class="section-title">Mechanism Architecture</span>
+        </div>
+        <div class="spec-box">
+          <ul class="spec-list">
+            <li><strong>Blind Purchase Recourse:</strong> Mandatory seller staking (0.01+ ETH) secures trust prior to payload inspection.</li>
+            <li><strong>Proof-of-Reveal:</strong> Enforces <code>keccak256(plaintext) == contentCommitment</code> on-chain at reveal time.</li>
+            <li><strong>Dispute Deterrent:</strong> Buyer must post a 0.001 ETH dispute bond, forfeited to the seller if the claim is baseless.</li>
+            <li><strong>Stake Slashing:</strong> Losing arbitration slashes 0.005 ETH from the seller stake to compensate the buyer.</li>
+            <li><strong>Reputation Engine:</strong> Composite 0–10,000 bps score tracking dispute outcomes and falsifiable claim accuracy.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.11.1/ethers.umd.min.js"></script>
+  <script>
+    const CONTRACT_ADDRESS = "0x2806E4C4c76c25C59b5530E481A2B5cDAA329C32";
+    const RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com";
+
+    const ABI = [
+      "function listingCounter() external view returns (uint256)",
+      "function purchaseCounter() external view returns (uint256)",
+      "function listings(uint256) external view returns (uint256 listingId, address seller, bytes32 contentCommitment, string teaser, uint256 price, uint256 expiryTimestamp, uint8 category, uint256 claimResolutionTimestamp, bool active, uint256 createdAt)",
+      "function purchases(uint256) external view returns (uint256 purchaseId, uint256 listingId, address buyer, uint256 amountPaid, uint256 revealDeadline, uint8 status, string revealedContent, uint256 disputedAt, string disputeReason)",
+      "function getSellerReputation(address seller) external view returns (uint256 stake, uint256 completedSales, uint256 disputesWon, uint256 disputesLost, uint256 resolvedClaims, uint256 accurateClaims, uint256 totalEarnings, uint256 compositeScoreBps)",
+      "function buyIntel(uint256 listingId) external payable returns (uint256)"
+    ];
+
+    const statusLabels = ["PendingReveal", "Revealed", "Confirmed", "Refunded", "Disputed"];
+    let provider, contract, signer;
+
+    async function init() {
+      try {
+        provider = new ethers.JsonRpcProvider(RPC_URL);
+        contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+        await loadContractData();
+      } catch (err) {
+        console.error("RPC Error:", err);
+        document.getElementById("rpcStatus").innerText = "RPC Fallback Required";
+      }
+    }
+
+    async function connectWallet() {
+      if (window.ethereum) {
+        try {
+          const web3Provider = new ethers.BrowserProvider(window.ethereum);
+          await web3Provider.send("eth_requestAccounts", []);
+          signer = await web3Provider.getSigner();
+          const userAddress = await signer.getAddress();
+          document.getElementById("btnConnect").innerText = `${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
+          contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+        } catch (e) {
+          alert("Wallet connection error: " + e.message);
+        }
+      } else {
+        alert("MetaMask or Web3 wallet not detected. Browsing in Read-Only Mode.");
+      }
+    }
+
+    async function loadContractData() {
+      try {
+        const listingCount = await contract.listingCounter();
+        const purchaseCount = await contract.purchaseCounter();
+
+        document.getElementById("stat-listings").innerText = listingCount.toString();
+        document.getElementById("feedCounter").innerText = `${listingCount.toString()} Listings`;
+        document.getElementById("escrowCounter").innerText = `${purchaseCount.toString()} Purchases`;
+
+        let totalVolumeWei = 0n;
+        const listingsContainer = document.getElementById("listingsContainer");
+        listingsContainer.innerHTML = "";
+
+        for (let i = 1; i <= Number(listingCount); i++) {
+          const item = await contract.listings(i);
+          const rep = await contract.getSellerReputation(item.seller);
+          const priceEth = ethers.formatEther(item.price);
+          const stakeEth = ethers.formatEther(rep.stake);
+          const scoreBps = Number(rep.compositeScoreBps);
+          const scorePct = (scoreBps / 100).toFixed(1);
+
+          document.getElementById("stat-stake").innerText = `${stakeEth} ETH`;
+          document.getElementById("stat-rep").innerHTML = `${scoreBps} <span style="font-size: 11px; font-weight: normal; color: var(--text-muted);">/ 10,000</span>`;
+
+          const categoryTag = item.category === 0 ? 
+            '<span class="tag">Falsifiable Claim</span>' : 
+            '<span class="tag">Subjective Analysis</span>';
+
+          const cardHtml = `
+            <div class="listing-item">
+              <div class="listing-top">
+                <div>
+                  <span class="tag" style="margin-right: 4px;">#${item.listingId}</span>
+                  ${categoryTag}
+                </div>
+                <div class="listing-price">${priceEth} ETH</div>
+              </div>
+              <div class="listing-teaser">${item.teaser}</div>
+              <div class="listing-meta">
+                <div class="meta-row">
+                  <span class="meta-key">Content Commitment:</span>
+                  <span class="mono" style="color: var(--text-muted);">${item.contentCommitment.slice(0, 16)}...${item.contentCommitment.slice(-8)}</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-key">Seller:</span>
+                  <span class="mono">${item.seller.slice(0, 8)}...${item.seller.slice(-6)}</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-key">Seller Stake:</span>
+                  <span class="mono">${stakeEth} ETH</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-key">Seller Reputation:</span>
+                  <span class="mono">${scorePct}% (${scoreBps} bps)</span>
+                </div>
+              </div>
+            </div>
+          `;
+          listingsContainer.insertAdjacentHTML("beforeend", cardHtml);
+        }
+
+        const escrowTbody = document.getElementById("escrowTableBody");
+        escrowTbody.innerHTML = "";
+
+        for (let j = 1; j <= Number(purchaseCount); j++) {
+          const p = await contract.purchases(j);
+          totalVolumeWei += p.amountPaid;
+          const statusIdx = Number(p.status);
+          const statusName = statusLabels[statusIdx] || "Unknown";
+
+          const rowHtml = `
+            <tr>
+              <td class="mono">#${p.purchaseId}</td>
+              <td class="mono">${p.buyer.slice(0, 6)}...${p.buyer.slice(-4)}</td>
+              <td class="mono">${ethers.formatEther(p.amountPaid)} ETH</td>
+              <td><span class="tag">${statusName}</span></td>
+            </tr>
+          `;
+          escrowTbody.insertAdjacentHTML("beforeend", rowHtml);
+        }
+
+        document.getElementById("stat-volume").innerText = `${ethers.formatEther(totalVolumeWei)} ETH`;
+
+      } catch (err) {
+        console.error("Data Load Error:", err);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", init);
+  </script>
 </body>
 </html>
