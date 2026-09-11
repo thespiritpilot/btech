@@ -33,7 +33,7 @@ async function main() {
   console.log("");
 
   const Factory = await ethers.getContractFactory("ScoutMarketEncrypted", sellerSigner);
-  const contract = await Factory.deploy(arbitratorSigner.address);
+  const contract = await Factory.deploy(arbitratorSigner.address, []); // no jurors needed for this demo
   await contract.waitForDeployment();
   console.log("ScoutMarketEncrypted deployed to (local):", await contract.getAddress());
 

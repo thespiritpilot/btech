@@ -85,15 +85,43 @@ contract ScoutMarketEncrypted {
     event PurchaseConfirmed(uint256 indexed purchaseId, address indexed seller, uint256 amountReleased);
     event DisputeRaised(uint256 indexed purchaseId, address indexed buyer, string reason);
     event DisputeResolved(uint256 indexed purchaseId, bool indexed buyerWins, string details);
+    event JurorVoteCast(uint256 indexed purchaseId, address indexed juror, bool acceptChallenge, uint256 acceptVotes, uint256 denyVotes);
+
+    // --- COMMITTEE ARBITRATION ---
+    // Identical mechanism to ScoutMarket.sol: a fixed committee of registered juror
+    // addresses, set once at deployment. A juror reads the buyer's disclosed plaintext
+    // in disputeReason (the same thing the single arbitrator reads) and votes on it —
+    // the encrypted-reveal change doesn't touch how disputes get judged, only how an
+    // undisputed purchase stays confidential.
+    uint256 public constant JUROR_VOTE_THRESHOLD = 3;
+    address[] public jurors;
+    mapping(address => bool) public isJuror;
+    mapping(uint256 => mapping(address => bool)) public hasVoted;
+    mapping(uint256 => uint256) public acceptVotes;
+    mapping(uint256 => uint256) public denyVotes;
 
     modifier onlyArbitrator() {
         require(msg.sender == arbitrator, "Only arbitrator can perform this action");
         _;
     }
 
-    constructor(address _arbitrator) {
+    constructor(address _arbitrator, address[] memory _jurors) {
         require(_arbitrator != address(0), "Invalid arbitrator address");
         arbitrator = _arbitrator;
+        for (uint256 i = 0; i < _jurors.length; i++) {
+            require(_jurors[i] != address(0), "Invalid juror address");
+            require(!isJuror[_jurors[i]], "Duplicate juror address");
+            jurors.push(_jurors[i]);
+            isJuror[_jurors[i]] = true;
+        }
+    }
+
+    function jurorCount() external view returns (uint256) {
+        return jurors.length;
+    }
+
+    function getJurors() external view returns (address[] memory) {
+        return jurors;
     }
 
     function depositStake() external payable {
@@ -227,12 +255,48 @@ contract ScoutMarketEncrypted {
     /**
      * @notice Arbitrator checks the buyer's disclosed plaintext (in disputeReason) against the
      *         original public commitment before ruling — the one place hash-verification still happens.
+     * @dev Kept as a manual override alongside the committee's castVote() path, exactly like
+     *      ScoutMarket.sol — either one can settle a Disputed purchase, whichever rules first.
      */
     function resolveDispute(uint256 purchaseId, bool buyerWins, string calldata details) external onlyArbitrator {
+        require(purchases[purchaseId].status == PurchaseStatus.Disputed, "Purchase is not in disputed state");
+        _settleDispute(purchaseId, buyerWins, details);
+    }
+
+    /**
+     * @notice A registered committee juror votes on an active dispute, having independently
+     *         read the buyer's disclosed plaintext (disputeReason) against the public commitment —
+     *         same information the single arbitrator uses, just judged by ten people instead of one.
+     */
+    function castVote(uint256 purchaseId, bool acceptChallenge) external {
+        require(isJuror[msg.sender], "Only registered committee jurors can vote");
+        require(purchases[purchaseId].status == PurchaseStatus.Disputed, "Purchase is not in disputed state");
+        require(!hasVoted[purchaseId][msg.sender], "Juror has already voted on this dispute");
+
+        hasVoted[purchaseId][msg.sender] = true;
+
+        if (acceptChallenge) {
+            acceptVotes[purchaseId]++;
+        } else {
+            denyVotes[purchaseId]++;
+        }
+
+        emit JurorVoteCast(purchaseId, msg.sender, acceptChallenge, acceptVotes[purchaseId], denyVotes[purchaseId]);
+
+        if (acceptVotes[purchaseId] >= JUROR_VOTE_THRESHOLD) {
+            _settleDispute(purchaseId, true, "Committee ruling: accept-vote threshold reached, buyer wins.");
+        } else if (denyVotes[purchaseId] > jurors.length - JUROR_VOTE_THRESHOLD) {
+            _settleDispute(purchaseId, false, "Committee ruling: accept threshold no longer reachable, seller wins.");
+        }
+    }
+
+    /**
+     * @dev Shared settlement logic for both the single-arbitrator override and the juror
+     *      committee — identical payout/reputation effects regardless of which path ruled.
+     */
+    function _settleDispute(uint256 purchaseId, bool buyerWins, string memory details) internal {
         Purchase storage purchase = purchases[purchaseId];
         Listing storage listing = listings[purchase.listingId];
-        require(purchase.status == PurchaseStatus.Disputed, "Purchase is not in disputed state");
-
         SellerReputation storage sellerRep = sellerReputations[listing.seller];
 
         if (buyerWins) {
