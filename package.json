@@ -11,11 +11,6 @@
     "deploy:base-sepolia": "hardhat run scripts/deploy.js --network baseSepolia",
     "demo": "node scripts/run_demo.js",
     "demo:dispute": "node scripts/simulate_dispute.js",
-    "watch:seller": "hardhat run scripts/watch_seller_reveals.js --network sepolia",
-    "setup:jurors": "hardhat run scripts/setup_jurors.js --network sepolia",
-    "sell": "hardhat run scripts/cli_sell.js --network sepolia",
-    "buy": "hardhat run scripts/cli_buy.js --network sepolia",
-    "dispute": "hardhat run scripts/cli_dispute.js --network sepolia",
     "start:agents": "python agents/run_agent_loop.py",
     "ui": "npx http-server ui -p 3000"
   },
