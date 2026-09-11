@@ -57,6 +57,31 @@ The core bet was: separate "did the seller deliver what they promised" (mechanic
 | 5 | **Receipt Confirmed** | [`0x2db7da...01846da`](https://sepolia.etherscan.io/tx/0x2db7da2bef8ae9623540ec10a1b3efb736aed498ca5cfd3546843eb1001846da) | 11679941 |
 | 6 | **Arbitrator Claim Resolution (Accurate)** | [`0x3b8fb0...35ffcd`](https://sepolia.etherscan.io/tx/0x3b8fb0274d65d3febc9c4e45b857936de73aa11d877ac113c571e487fa35ffcd) | 11679943 |
 
+### 4. Tightened Teaser Format Listing (Live on Sepolia)
+| Step | Action | Tx Hash / Etherscan Link | Block |
+| :--- | :--- | :--- | :--- |
+| 1 | **Create Listing #5 (`[Health Flag] Jaylen Cole — Oregon`)** | [`0x28ad94...5a3381`](https://sepolia.etherscan.io/tx/0x28ad94be880657cb13bc2d9a2d93b5a279d22826e002b942f7cb37ef115a3381) | 11680199 |
+
+---
+
+## Teaser Design & Information Minimization
+
+A fundamental vulnerability of unverifiable intelligence marketplaces is **information leakage in the teaser**. If a seller posts *"Round 1 QB Jaylen Cole - Subscapularis Shoulder Fatigue Pattern"*, the body part, severity, and draft context are given away for free before the buyer ever locks funds in escrow.
+
+To protect the seller's economic value, ScoutMarket strictly enforces a **minimalist teaser format**:
+```
+[Category] PlayerName — Team
+```
+
+### Standard Category Taxonomy:
+- **`[Young Star]`**: Prospect & emerging talent evaluations
+- **`[Health Flag]`**: Medical & injury risk signals
+- **`[Career Change]`**: Transfer, trade, and contract-related intelligence
+- **`[Performance Edge]`**: Tactical, statistical, and film-study breakdowns
+- **`[Character Note]`**: Makeup, work ethic, and locker-room dynamics
+
+*Note: Initial historical test listings #1–#3 on Sepolia predate this teaser refinement and remain permanently immutable on-chain. Listing #5 (`[Health Flag] Jaylen Cole — Oregon`) and all agent generation pipelines forward strictly adhere to this format.*
+
 ---
 
 ## Why Sports Scouting Specifically

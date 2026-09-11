@@ -503,6 +503,12 @@
             '<span class="tag">Falsifiable Claim</span>' : 
             '<span class="tag">Subjective Analysis</span>';
 
+          let teaserHtml = item.teaser;
+          const match = item.teaser.match(/^\[([^\]]+)\]\s*(.*)$/);
+          if (match) {
+            teaserHtml = `<span class="tag mono" style="margin-right: 6px; color: var(--text-bright);">${match[1]}</span><span>${match[2]}</span>`;
+          }
+
           const cardHtml = `
             <div class="listing-item">
               <div class="listing-top">
@@ -512,7 +518,7 @@
                 </div>
                 <div class="listing-price">${priceEth} ETH</div>
               </div>
-              <div class="listing-teaser">${item.teaser}</div>
+              <div class="listing-teaser">${teaserHtml}</div>
               <div class="listing-meta">
                 <div class="meta-row">
                   <span class="meta-key">Content Commitment:</span>

@@ -67,7 +67,7 @@ async function main() {
   // 2. Seller creates listing
   console.log("\n>>> Step 2: Create listing...");
   const report = {
-    teaser: `Round 2 WR Prospect Soft-Tissue Injury Flag (Live Dispute Test #${Date.now().toString().slice(-4)})`,
+    teaser: "[Health Flag] Marcus Vance — Georgia",
     plaintextIntel: "DETAILED MEDICAL ALERT: Hamstring grade 2 tear detected in private workout.",
     priceEth: "0.005",
     expiryHours: 24,

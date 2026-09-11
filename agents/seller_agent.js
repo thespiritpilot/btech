@@ -2,10 +2,23 @@ const { ethers } = require("ethers");
 const fs = require("fs");
 const path = require("path");
 
+// Standard Minimalist Categories (withholds proprietary intel specifics pre-purchase)
+const TEASER_CATEGORIES = {
+  YOUNG_STAR: "Young Star",         // Prospect / talent evaluation
+  HEALTH_FLAG: "Health Flag",       // Medical / injury risk
+  CAREER_CHANGE: "Career Change",   // Transfer / trade / contract signal
+  PERFORMANCE_EDGE: "Performance Edge", // Tactical / film / statistical study
+  CHARACTER_NOTE: "Character Note"  // Locker-room / makeup / work ethic
+};
+
 class SellerAgent {
   constructor(signer, contractAddress, contractAbi) {
     this.signer = signer;
     this.contract = new ethers.Contract(contractAddress, contractAbi, signer);
+  }
+
+  static formatTeaser(category, playerName, team) {
+    return `[${category}] ${playerName} — ${team}`;
   }
 
   async ensureStake(minStakeEth = "0.01") {
@@ -23,13 +36,18 @@ class SellerAgent {
   }
 
   async createScoutingListing(intelPackage) {
-    const { teaser, plaintextIntel, priceEth, expiryHours, category, resolutionDays } = intelPackage;
+    let { teaser, categoryTag, playerName, team, plaintextIntel, priceEth, expiryHours, category, resolutionDays } = intelPackage;
+
+    // Use tightened format if components are provided
+    if (!teaser && categoryTag && playerName && team) {
+      teaser = SellerAgent.formatTeaser(categoryTag, playerName, team);
+    }
 
     const priceWei = ethers.parseEther(priceEth);
     const commitmentHash = ethers.keccak256(ethers.toUtf8Bytes(plaintextIntel));
     const now = Math.floor(Date.now() / 1000);
     const expiryTimestamp = now + expiryHours * 3600;
-    const resolutionTimestamp = now + resolutionDays * 86400;
+    const resolutionTimestamp = now + (resolutionDays || 7) * 86400;
 
     console.log(`[Seller Agent] Creating listing: "${teaser}"`);
     console.log(`[Seller Agent] Price: ${priceEth} ETH | Commitment: ${commitmentHash}`);
@@ -57,7 +75,7 @@ class SellerAgent {
     }
 
     console.log(`[Seller Agent] Listing #${listingId} created on-chain! Tx: ${tx.hash}`);
-    return { listingId, commitmentHash, plaintextIntel, txHash: tx.hash };
+    return { listingId, commitmentHash, plaintextIntel, txHash: tx.hash, teaser };
   }
 
   async revealIntelForPurchase(purchaseId, plaintextIntel) {
@@ -70,3 +88,5 @@ class SellerAgent {
 }
 
 module.exports = SellerAgent;
+module.exports.TEASER_CATEGORIES = TEASER_CATEGORIES;
+

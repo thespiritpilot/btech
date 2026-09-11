@@ -64,7 +64,7 @@ async function main() {
   // Step 2: Listing Creation
   console.log("\n>>> STEP 2: Seller Packages Scouting Intel & Posts Commitment...");
   const scoutingReport = {
-    teaser: `Round 1 QB Prospect Jaylen Cole - Subscapularis Shoulder Fatigue (Live Sepolia #${Date.now().toString().slice(-4)})`,
+    teaser: "[Health Flag] Jaylen Cole — Oregon",
     plaintextIntel: "CONFIDENTIAL SCOUT REPORT #904: Film study across 6 games indicates 14% drop in ball velocity past 40 yards in 4th quarters. Medical red flag flag by Dr. Cole. High risk for late Round 1.",
     priceEth: "0.005",
     expiryHours: 24,

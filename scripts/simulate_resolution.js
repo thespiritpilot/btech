@@ -54,7 +54,7 @@ async function main() {
 
   const createTx = await scoutMarket.connect(sellerAccount).createListing(
     commitmentHash,
-    `Round 2 Draft Pick Prediction - Vance (Live Resolution Demo #${Date.now().toString().slice(-4)})`,
+    "[Young Star] Marcus Vance — Georgia",
     ethers.parseEther("0.002"),
     expiryTimestamp,
     0, // Category: Falsifiable

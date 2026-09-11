@@ -2,11 +2,24 @@ import json
 import os
 from web3 import Web3
 
+TEASER_CATEGORIES = {
+    "YOUNG_STAR": "Young Star",
+    "HEALTH_FLAG": "Health Flag",
+    "CAREER_CHANGE": "Career Change",
+    "PERFORMANCE_EDGE": "Performance Edge",
+    "CHARACTER_NOTE": "Character Note"
+}
+
 class PythonSellerAgent:
     def __init__(self, w3, signer_account, contract_address, abi):
         self.w3 = w3
         self.account = signer_account
         self.contract = w3.eth.contract(address=contract_address, abi=abi)
+
+    @staticmethod
+    def format_teaser(category, player_name, team):
+        """Format minimal teaser: [Category] PlayerName — Team"""
+        return f"[{category}] {player_name} — {team}"
 
     def ensure_stake(self, min_stake_eth=0.01):
         min_stake_wei = self.w3.to_wei(min_stake_eth, 'ether')
@@ -29,7 +42,10 @@ class PythonSellerAgent:
             self.w3.eth.wait_for_transaction_receipt(tx_hash)
             print(f"[Python Seller Agent] Stake deposit confirmed. Tx: {tx_hash.hex()}")
 
-    def create_listing(self, teaser, plaintext, price_eth, expiry_hours=24, category="Falsifiable", resolution_days=7):
+    def create_listing(self, teaser, plaintext, price_eth, expiry_hours=24, category="Falsifiable", resolution_days=7, category_tag=None, player_name=None, team=None):
+        if not teaser and category_tag and player_name and team:
+            teaser = self.format_teaser(category_tag, player_name, team)
+
         price_wei = self.w3.to_wei(price_eth, 'ether')
         commitment_hash = self.w3.solidity_keccak(['string'], [plaintext])
         

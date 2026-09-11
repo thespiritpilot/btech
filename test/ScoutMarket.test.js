@@ -35,7 +35,7 @@ describe("ScoutMarket Unit Tests", function () {
       await expect(
         scoutMarket.connect(seller).createListing(
           intelHash,
-          "Round 2 WR Prospect Injury Risk",
+          "[Health Flag] Marcus Vance — Georgia",
           intelPrice,
           expiry,
           0, // Falsifiable
@@ -56,7 +56,7 @@ describe("ScoutMarket Unit Tests", function () {
 
       const tx = await scoutMarket.connect(seller).createListing(
         intelHash,
-        "Round 2 WR Prospect Injury Risk",
+        "[Health Flag] Marcus Vance — Georgia",
         intelPrice,
         expiry,
         0, // Falsifiable
