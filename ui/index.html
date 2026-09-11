@@ -1418,15 +1418,33 @@
           document.getElementById("stat-rep").innerHTML = `${rep.compositeScoreBps.toString()} <span style="font-size: 11px; font-weight: normal; color: var(--text-muted);">/ 10,000</span>`;
         }
 
-        // Listings the connected wallet already holds an unresolved purchase against
-        // (PendingReveal or Revealed) — used to stop the same buyer from re-purchasing
-        // the same intel before their existing purchase is confirmed or refunded.
-        const buyerActiveListingIds = new Set();
+        // Listings the connected wallet holds a purchase against that should block
+        // re-buying — covers pending/revealed, disputes in flight, and disputes
+        // already settled either way. A purchase that completed normally (no
+        // dispute) doesn't block re-buying the same listing.
+        const buyerListingStatus = new Map(); // listingId -> label string
         if (userAddress) {
           for (let j = 1; j <= Number(purchaseCount); j++) {
             const p = await contract.purchases(j);
-            if (p.buyer.toLowerCase() === userAddress.toLowerCase() && (Number(p.status) === 0 || Number(p.status) === 1)) {
-              buyerActiveListingIds.add(Number(p.listingId));
+            if (p.buyer.toLowerCase() !== userAddress.toLowerCase()) continue;
+
+            const statusIdx = Number(p.status);
+            const wasDisputed = Number(p.disputedAt) > 0;
+            let label = null;
+            if (statusIdx === 0 || statusIdx === 1) {
+              label = "Already Purchased — See My Activity";
+            } else if (statusIdx === 4) {
+              label = "Dispute Ongoing";
+            } else if (statusIdx === 3 && wasDisputed) {
+              label = "Disputed — Accepted";
+            } else if (statusIdx === 2 && wasDisputed) {
+              label = "Disputed — Rejected";
+            }
+
+            if (label) {
+              buyerListingStatus.set(Number(p.listingId), label);
+            } else {
+              buyerListingStatus.delete(Number(p.listingId));
             }
           }
         }
@@ -1453,9 +1471,9 @@
 
           const teaserHtml = `<span class="tag mono" style="margin-right: 6px; color: var(--text-bright); border-color: #3b82f6;">${match[1]}</span><span>${match[2]}</span>`;
 
-          const alreadyPurchased = buyerActiveListingIds.has(Number(item.listingId));
-          const buyActionHtml = alreadyPurchased
-            ? `<span class="tag tag-accent">Already Purchased — See My Activity</span>`
+          const buyerLabel = buyerListingStatus.get(Number(item.listingId));
+          const buyActionHtml = buyerLabel
+            ? `<span class="tag tag-accent">${buyerLabel}</span>`
             : `<button class="btn btn-sm btn-primary" onclick="executeBuy(this, ${item.listingId}, ${item.price})">Buy for ${priceEth} ETH</button>`;
 
           const cardHtml = `

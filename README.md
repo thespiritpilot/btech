@@ -100,6 +100,67 @@ PURCHASE_ID=6 npm run dispute         # raises a dispute, then has the juror com
 
 `npm run dispute` accepts `ACCEPT_VOTES` (default `3`) to control how many jurors vote to accept the challenge before the rest vote deny — `ACCEPT_VOTES=0` demonstrates the seller-wins path. Pass `SKIP_VOTES=1` to raise the dispute and leave it open for manual voting via `arbitrator.html` instead. Run `npm run setup:jurors` once first to generate and fund the 10-address committee (saved locally to `agents/.jurors.json`, gitignored — never commit it).
 
+### How an Autonomous Agent Actually Connects (Not Just the CLI)
+
+The `npm run` commands above are a **human-operated** wrapper — someone deciding when to type each one. A real autonomous agent skips that entirely: it imports the same `SellerAgent` / `BuyerAgent` classes directly and calls their methods from its own process, with no terminal and no human triggering each step.
+
+**Connecting to the contract** is the same three lines everywhere in this repo — a JSON-RPC provider, a wallet from a private key, and a `Contract` instance bound to that wallet as its signer:
+
+```js
+const { ethers } = require("ethers");
+
+const provider = new ethers.JsonRpcProvider(process.env.SEPOLIA_RPC || "https://ethereum-sepolia-rpc.publicnode.com");
+const wallet = new ethers.Wallet(process.env.SELLER_PK, provider);   // or BUYER_PK, or a juror key
+const artifact = require("./artifacts/contracts/ScoutMarket.sol/ScoutMarket.json");
+const contract = new ethers.Contract(CONTRACT_ADDRESS, artifact.abi, wallet);
+// contract.connect(wallet) is now signer-bound — every write call submits a real, signed tx.
+```
+
+That's it — no SDK, no special "agent" runtime. Anything below is just JavaScript calling `contract.method(...)` in a loop instead of a human clicking a button.
+
+**Example 1 — the seller side, already real and already running.** [`agents/seller_agent.js`](agents/seller_agent.js)'s `watchAndAutoReveal()` is a standing loop: start it once (`npm run watch:seller`) and it polls every 10 seconds, forever, with zero further input:
+
+```js
+async function tick() {
+  const purchaseCount = Number(await contract.purchaseCounter());
+  for (let id = lastCheckedPurchaseId + 1; id <= purchaseCount; id++) {
+    const purchase = await contract.purchases(id);
+    if (Number(purchase.status) !== 0) continue;              // not PendingReveal — nothing to do
+    const listing = await contract.listings(purchase.listingId);
+    if (listing.seller.toLowerCase() !== wallet.address.toLowerCase()) continue; // not our listing
+    const plaintext = loadKeystore()[listing.contentCommitment];
+    if (!plaintext) continue;
+    const tx = await contract.revealIntel(id, plaintext);      // real signed transaction, no human involved
+    await tx.wait();
+  }
+  lastCheckedPurchaseId = purchaseCount;
+  setTimeout(tick, 10_000);
+}
+```
+
+**Example 2 — the buyer side, same pattern, not shipped as a standing script tonight but exactly what `evaluateListing()` on the contract exists to support:**
+
+```js
+async function autonomousBuyerLoop() {
+  const listingCount = Number(await contract.listingCounter());
+  for (let id = 1; id <= listingCount; id++) {
+    if (await alreadyOwned(id)) continue;
+    const { canPurchase, sellerScoreBps, sellerStake, price } = await contract.evaluateListing(id);
+    const passesRiskCheck = canPurchase
+      && sellerStake >= ethers.parseEther("0.01")
+      && sellerScoreBps >= 2500n; // minimum reputation threshold, tunable per agent
+
+    if (passesRiskCheck) {
+      const tx = await contract.buyIntel(id, { value: price }); // the agent decided, on its own, to pay
+      await tx.wait();
+    }
+  }
+  setTimeout(autonomousBuyerLoop, 30_000);
+}
+```
+
+The contract's `evaluateListing()` ([ScoutMarket.sol:517](contracts/ScoutMarket.sol:517)) returns exactly the tuple this decision needs — it's a read-only function that exists specifically so a buyer agent never has to guess, scrape, or ask a human; the risk check above *is* the whole "decision engine" the mechanism design section describes, expressed as five lines of JavaScript.
+
 ---
 
 ## Interactive "Act as an Agent" Web3 Flow
