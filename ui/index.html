@@ -824,8 +824,44 @@
       try {
         const tx = await contract.buyIntel(listingId, { value: priceWei });
         alert(`Escrow Purchase Submitted! Tx: https://sepolia.etherscan.io/tx/${tx.hash}\nFunds are locked in smart contract escrow.`);
-        await tx.wait();
-        alert(`Purchase confirmed! The seller has been notified to submit on-chain proof-of-reveal.`);
+        const receipt = await tx.wait();
+
+        // Pull the new purchaseId out of the IntelPurchased event.
+        let purchaseId = null;
+        for (const log of receipt.logs) {
+          try {
+            const parsed = contract.interface.parseLog(log);
+            if (parsed && parsed.name === "IntelPurchased") {
+              purchaseId = parsed.args.purchaseId;
+              break;
+            }
+          } catch (e) {}
+        }
+
+        // Self-purchase shortcut: if you're buying your OWN listing (testing the
+        // flow end-to-end) and this browser still has the plaintext cached from
+        // when you created it, submit the reveal immediately instead of making
+        // you switch to the Seller tab and click it manually.
+        let autoRevealed = false;
+        if (purchaseId !== null) {
+          try {
+            const listing = await contract.listings(listingId);
+            if (listing.seller.toLowerCase() === userAddress.toLowerCase()) {
+              const storedIntel = localStorage.getItem(`scout_intel_${listing.contentCommitment}`);
+              if (storedIntel) {
+                const revealTx = await contract.revealIntel(purchaseId, storedIntel);
+                await revealTx.wait();
+                autoRevealed = true;
+              }
+            }
+          } catch (revealErr) {
+            console.error("Auto-reveal after self-purchase failed:", revealErr);
+          }
+        }
+
+        alert(autoRevealed
+          ? `Purchase confirmed and intel auto-revealed instantly! Head to My Activity to confirm receipt & release escrow.`
+          : `Purchase confirmed! The seller has been notified to submit on-chain proof-of-reveal.`);
         await loadContractData();
         renderUserActivity();
       } catch (err) {
