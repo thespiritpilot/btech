@@ -1,0 +1,26 @@
+{
+  "name": "scout-market",
+  "version": "1.0.0",
+  "description": "ScoutMarket - On-chain marketplace for unverifiable sports scouting intelligence",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "node": "hardhat node",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "deploy:base-sepolia": "hardhat run scripts/deploy.js --network baseSepolia",
+    "demo": "node scripts/run_demo.js",
+    "demo:dispute": "node scripts/simulate_dispute.js",
+    "start:agents": "python agents/run_agent_loop.py",
+    "ui": "npx http-server ui -p 3000"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ethers": "^6.11.1",
+    "express": "^4.19.2"
+  }
+}

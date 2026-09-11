@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScoutMarket — On-Chain Sports Scouting Intelligence Marketplace</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --card-bg: #111827;
+      --border-color: #1f293d;
+      --accent-green: #10b981;
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --accent-amber: #f59e0b;
+      --text-muted: #9ca3af;
+    }
+    body {
+      background-color: var(--bg-dark);
+      color: #f3f4f6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+    }
+    .navbar-brand {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .badge-x402 {
+      background: linear-gradient(135deg, #ec4899, #8b5cf6);
+      color: white;
+      font-weight: 600;
+    }
+    .badge-verified {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.25rem;
+      transition: all 0.2s ease-in-out;
+    }
+    .stat-card:hover {
+      border-color: #374151;
+      transform: translateY(-2px);
+    }
+    .stat-val {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-top: 0.25rem;
+    }
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .listing-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .listing-card:hover {
+      border-color: var(--accent-blue);
+    }
+    .seller-rep-bar {
+      height: 6px;
+      border-radius: 3px;
+      background: #374151;
+      overflow: hidden;
+    }
+    .seller-rep-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+    }
+    .status-badge {
+      font-size: 0.72rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+    .status-0 { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); } /* PendingReveal */
+    .status-1 { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); } /* Revealed */
+    .status-2 { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); } /* Confirmed */
+    .status-3 { background: rgba(156, 163, 175, 0.2); color: #d1d5db; border: 1px solid rgba(156, 163, 175, 0.4); } /* Refunded */
+    .status-4 { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); } /* Disputed */
+    .eth-address {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: #93c5fd;
+    }
+    .btn-connect {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #f8fafc;
+      font-weight: 600;
+      font-size: 0.85rem;
+      border-radius: 8px;
+      padding: 6px 14px;
+    }
+    .btn-connect:hover {
+      background: #334155;
+      color: #fff;
+    }
+  </style>
+</head>
+<body class="py-4">
+  <div class="container">
+    <!-- Header -->
+    <header class="d-flex flex-wrap justify-content-between align-items-center pb-3 mb-4 border-bottom border-secondary">
+      <div>
+        <div class="d-flex align-items-center gap-2">
+          <h2 class="navbar-brand text-white mb-0 fs-3"><i class="fa-solid fa-radar text-primary me-2"></i>ScoutMarket</h2>
+          <span class="badge badge-verified"><i class="fa-solid fa-check-circle me-1"></i>Verified on Sepolia</span>
+        </div>
+        <p class="text-muted small mb-0 mt-1">Autonomous Agent Marketplace for Unverifiable Sports Scouting Intelligence</p>
+      </div>
+      <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
+        <span class="badge badge-x402 px-3 py-2"><i class="fa-solid fa-bolt me-1"></i>x402 Protocol</span>
+        <button id="btnConnect" class="btn btn-connect" onclick="connectWallet()"><i class="fa-solid fa-wallet me-1"></i> Connect Wallet</button>
+      </div>
+    </header>
+
+    <!-- Contract Status Banner -->
+    <div class="stat-card mb-4 bg-opacity-50">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div class="small">
+          <span class="text-muted">Live Contract Address:</span>
+          <a id="contractLink" href="https://sepolia.etherscan.io/address/0x2806E4C4c76c25C59b5530E481A2B5cDAA329C32#code" target="_blank" class="eth-address ms-1 text-decoration-none">
+            0x2806E4C4c76c25C59b5530E481A2B5cDAA329C32 <i class="fa-solid fa-arrow-up-right-from-square ms-1 small"></i>
+          </a>
+        </div>
+        <div class="small text-muted">
+          <span class="text-success"><i class="fa-solid fa-circle text-success me-1" style="font-size: 8px;"></i>RPC Connected:</span>
+          <span id="rpcStatus">Sepolia Publicnode</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-label"><i class="fa-solid fa-shield-halved text-success me-1"></i> Seller Stake</div>
+          <div class="stat-val text-success" id="stat-stake">0.010 ETH</div>
+          <small class="text-muted">Skin-in-the-Game Staking</small>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-label"><i class="fa-solid fa-file-contract text-primary me-1"></i> Total Listings</div>
+          <div class="stat-val" id="stat-listings">3</div>
+          <small class="text-muted">Falsifiable Scouting Intel</small>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-label"><i class="fa-solid fa-vault text-warning me-1"></i> Escrow Volume</div>
+          <div class="stat-val text-warning" id="stat-volume">0.012 ETH</div>
+          <small class="text-muted">Total Paid into Escrow</small>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-label"><i class="fa-solid fa-star text-info me-1"></i> Seller Reputation</div>
+          <div class="stat-val text-info" id="stat-rep">4,400 <span class="fs-6">/ 10,000 bps</span></div>
+          <small class="text-muted">Dispute & Accuracy Weighted</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row g-4">
+      <!-- Left Column: Active Intel Feed -->
+      <div class="col-lg-7">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0 text-white"><i class="fa-solid fa-list-check me-2 text-primary"></i> Live Scouting Intel Feed</h5>
+          <span class="badge bg-secondary small" id="feedCounter">3 Listings</span>
+        </div>
+
+        <div id="listingsContainer">
+          <!-- Dynamically populated from contract -->
+          <div class="text-center py-4 text-muted">
+            <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+            <div>Querying Ethereum Sepolia smart contract...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Escrow & Mechanism Highlights -->
+      <div class="col-lg-5">
+        <!-- Live Escrow & Arbitration Audit -->
+        <div class="stat-card mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold text-white mb-0"><i class="fa-solid fa-handshake-simple me-2 text-warning"></i> On-Chain Escrow Tracker</h5>
+            <span class="badge bg-dark border border-secondary text-muted" id="escrowCounter">3 Purchases</span>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0 small">
+              <thead>
+                <tr class="text-muted">
+                  <th>ID</th>
+                  <th>Buyer Agent</th>
+                  <th>Escrow</th>
+                  <th>State</th>
+                </tr>
+              </thead>
+              <tbody id="escrowTableBody">
+                <!-- Dynamically populated from contract -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Mechanism & Architecture Summary -->
+        <div class="stat-card">
+          <h5 class="fw-bold text-white mb-3"><i class="fa-solid fa-diagram-project me-2 text-purple"></i> Mechanism Design Highlights</h5>
+          <ul class="list-unstyled small text-muted mb-0">
+            <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i><strong>Blind Purchase Recourse:</strong> Mandatory seller staking (0.01+ ETH) manufactures trust without pre-payment inspection.</li>
+            <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i><strong>Proof-of-Reveal:</strong> Smart contract strictly enforces <code>keccak256(plaintext) == contentCommitment</code> before reveal state change.</li>
+            <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i><strong>Frivolous Dispute Deterrent:</strong> Buyers post a dispute bond (0.001 ETH) forfeited to seller if dispute is unfounded.</li>
+            <li class="mb-2"><i class="fa-solid fa-check text-success me-2"></i><strong>Stake Slashing:</strong> Losing arbitration slashes seller stake (0.005 ETH) and awards it to the buyer as liquidated damages.</li>
+            <li><i class="fa-solid fa-check text-success me-2"></i><strong>Compound Reputation Engine:</strong> 0–10,000 bps composite score weighing dispute win/loss ratio and real-world falsifiable accuracy.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.11.1/ethers.umd.min.js"></script>
+  <script>
+    const CONTRACT_ADDRESS = "0x2806E4C4c76c25C59b5530E481A2B5cDAA329C32";
+    const RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com";
+
+    const ABI = [
+      "function listingCounter() external view returns (uint256)",
+      "function purchaseCounter() external view returns (uint256)",
+      "function listings(uint256) external view returns (uint256 listingId, address seller, bytes32 contentCommitment, string teaser, uint256 price, uint256 expiryTimestamp, uint8 category, uint256 claimResolutionTimestamp, bool active, uint256 createdAt)",
+      "function purchases(uint256) external view returns (uint256 purchaseId, uint256 listingId, address buyer, uint256 amountPaid, uint256 revealDeadline, uint8 status, string revealedContent, uint256 disputedAt, string disputeReason)",
+      "function getSellerReputation(address seller) external view returns (uint256 stake, uint256 completedSales, uint256 disputesWon, uint256 disputesLost, uint256 resolvedClaims, uint256 accurateClaims, uint256 totalEarnings, uint256 compositeScoreBps)",
+      "function buyIntel(uint256 listingId) external payable returns (uint256)"
+    ];
+
+    const statusLabels = ["PendingReveal", "Revealed", "Confirmed", "Refunded", "Disputed"];
+    let provider, contract, signer;
+
+    async function init() {
+      try {
+        provider = new ethers.JsonRpcProvider(RPC_URL);
+        contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+        await loadContractData();
+      } catch (err) {
+        console.error("RPC Error:", err);
+        document.getElementById("rpcStatus").innerText = "RPC Fallback Required";
+      }
+    }
+
+    async function connectWallet() {
+      if (window.ethereum) {
+        try {
+          const web3Provider = new ethers.BrowserProvider(window.ethereum);
+          await web3Provider.send("eth_requestAccounts", []);
+          signer = await web3Provider.getSigner();
+          const userAddress = await signer.getAddress();
+          document.getElementById("btnConnect").innerHTML = `<i class="fa-solid fa-circle text-success me-1"></i> ${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
+          contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+        } catch (e) {
+          alert("Wallet connection cancelled: " + e.message);
+        }
+      } else {
+        alert("MetaMask or Web3 wallet not detected. Browsing in Read-Only Mode.");
+      }
+    }
+
+    async function loadContractData() {
+      try {
+        const listingCount = await contract.listingCounter();
+        const purchaseCount = await contract.purchaseCounter();
+
+        document.getElementById("stat-listings").innerText = listingCount.toString();
+        document.getElementById("feedCounter").innerText = `${listingCount.toString()} Listings`;
+        document.getElementById("escrowCounter").innerText = `${purchaseCount.toString()} Purchases`;
+
+        let totalVolumeWei = 0n;
+        const listingsContainer = document.getElementById("listingsContainer");
+        listingsContainer.innerHTML = "";
+
+        for (let i = 1; i <= Number(listingCount); i++) {
+          const item = await contract.listings(i);
+          const rep = await contract.getSellerReputation(item.seller);
+          const priceEth = ethers.formatEther(item.price);
+          const stakeEth = ethers.formatEther(rep.stake);
+          const scoreBps = Number(rep.compositeScoreBps);
+          const scorePct = (scoreBps / 100).toFixed(1);
+
+          document.getElementById("stat-stake").innerText = `${stakeEth} ETH`;
+          document.getElementById("stat-rep").innerHTML = `${scoreBps} <span class="fs-6">/ 10,000 bps</span>`;
+
+          const categoryBadge = item.category === 0 ? 
+            '<span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="fa-solid fa-clock-rotate-left me-1"></i> Falsifiable</span>' : 
+            '<span class="badge bg-info-subtle text-info border border-info-subtle"><i class="fa-solid fa-magnifying-glass me-1"></i> Subjective Study</span>';
+
+          const cardHtml = `
+            <div class="listing-card">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                ${categoryBadge}
+                <span class="fw-bold text-success fs-5">${priceEth} ETH</span>
+              </div>
+              <h6 class="fw-bold text-white mb-2">${item.teaser}</h6>
+              <div class="small text-muted mb-2">
+                <i class="fa-solid fa-fingerprint me-1"></i> <strong>Commitment:</strong> <code class="text-info">${item.contentCommitment.slice(0, 18)}...${item.contentCommitment.slice(-8)}</code>
+              </div>
+              <div class="p-2 bg-dark rounded border border-secondary mb-3 small">
+                <div class="d-flex justify-content-between mb-1">
+                  <span class="text-muted">Seller Agent:</span>
+                  <code class="text-light">${item.seller.slice(0,8)}...${item.seller.slice(-6)}</code>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="text-muted">Seller Reputation Score:</span>
+                  <span class="fw-bold ${scoreBps >= 5000 ? 'text-info' : 'text-danger'}">${scorePct}% (${scoreBps} bps)</span>
+                </div>
+                <div class="seller-rep-bar mt-1">
+                  <div class="seller-rep-fill" style="width: ${Math.min(scorePct, 100)}%;"></div>
+                </div>
+              </div>
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="badge bg-secondary"><i class="fa-solid fa-shield me-1"></i> Active Stake: ${stakeEth} ETH</span>
+                <span class="text-muted small"><i class="fa-solid fa-check me-1 text-success"></i> Listing #${item.listingId} Active</span>
+              </div>
+            </div>
+          `;
+          listingsContainer.insertAdjacentHTML("beforeend", cardHtml);
+        }
+
+        const escrowTbody = document.getElementById("escrowTableBody");
+        escrowTbody.innerHTML = "";
+
+        for (let j = 1; j <= Number(purchaseCount); j++) {
+          const p = await contract.purchases(j);
+          totalVolumeWei += p.amountPaid;
+          const statusIdx = Number(p.status);
+          const statusName = statusLabels[statusIdx] || "Unknown";
+
+          const rowHtml = `
+            <tr>
+              <td>#${p.purchaseId}</td>
+              <td><code>${p.buyer.slice(0, 6)}...${p.buyer.slice(-4)}</code></td>
+              <td>${ethers.formatEther(p.amountPaid)} ETH</td>
+              <td><span class="status-badge status-${statusIdx}">${statusName}</span></td>
+            </tr>
+          `;
+          escrowTbody.insertAdjacentHTML("beforeend", rowHtml);
+        }
+
+        document.getElementById("stat-volume").innerText = `${ethers.formatEther(totalVolumeWei)} ETH`;
+
+      } catch (err) {
+        console.error("Data Load Error:", err);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
