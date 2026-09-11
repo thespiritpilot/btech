@@ -731,17 +731,29 @@
           detail: `Reason: "${intel.disputeReason}"`
         });
 
+        // The real arbitrator's ruling isn't computed by any on-chain logic —
+        // it's one address's off-chain judgment call (see Known Limitations).
+        // A coin flip is a more honest simulation of that than always
+        // resolving the same way.
+        const buyerWins = Math.random() < 0.5;
+
         await addSimStep({
           actor: "⚖️ Arbitrator",
           badge: { label: "resolveDispute()", cls: "tag-danger" },
-          title: "Rules for the buyer.",
-          detail: "Seller's stake is slashed 0.005 ETH; buyer gets that plus their escrow and bond back.",
+          title: buyerWins ? "Rules for the buyer." : "Rules for the seller — dispute dismissed.",
+          detail: buyerWins
+            ? "Seller's stake is slashed 0.005 ETH; buyer gets that plus their escrow and bond back."
+            : "Seller keeps the escrow plus the buyer's forfeited 0.001 ETH bond — the deterrent against frivolous disputes.",
           showHash: true
         });
 
-        document.getElementById("simTimeline").insertAdjacentHTML("beforeend", `
+        document.getElementById("simTimeline").insertAdjacentHTML("beforeend", buyerWins ? `
           <div class="sim-summary dispute">
             <strong>Dispute upheld.</strong> Buyer gets everything back plus a stake penalty. Seller's reputation takes a hit.
+          </div>
+        ` : `
+          <div class="sim-summary">
+            <strong>Dispute dismissed.</strong> Seller gets paid in full plus the buyer's bond. Buyer's out the bond for a call that didn't go their way.
           </div>
         `);
       } else {
