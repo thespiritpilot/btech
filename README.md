@@ -1,6 +1,7 @@
 > 🔐 **[A NEW VERSION IS AVAILABLE]** — a prototype that encrypts revealed content to the buyer's own public key instead of posting it in the open, fixing the "anyone can read it for free after reveal" limitation below. Tested (24/24 passing), not yet merged into the live deployment. See the [`encrypted-reveal-prototype`](https://github.com/thespiritpilot/btech/tree/encrypted-reveal-prototype) branch.
 
-# ( ↑  ↑ New Version Above ↑  ↑ ) ScoutMarket ⚡ ⚽ 🏈 🏀
+# ( ↑  ↑ New Version Above ↑  ↑ ) 
+# ScoutMarket ⚡ ⚽ 🏈 🏀
 > **An On-Chain Marketplace for Unverifiable Sports Scouting Intelligence**
 
 🌐 **Live Web3 Dashboard**: [https://thespiritpilot.github.io/btech/](https://thespiritpilot.github.io/btech/)  
